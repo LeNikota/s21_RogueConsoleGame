@@ -1,16 +1,17 @@
-using System.Numerics;
 
 namespace domain {
 class GameSession
 {
-    enum InputActions { UP, DOWN, LEFT, RIGHT};
+    public enum InputAction { UP, DOWN, LEFT, RIGHT};
     private Level level;
+    private Player player; //lookup not to look for it all the time
 
 
     public GameSession()
     {
         level = new Level();
-        level.entities.Add(new Player(8, 8, "P"));
+        player = new Player(8, 8);
+        level.entities.Add(player);
     }
 
     public Level GetLevel()
@@ -18,50 +19,66 @@ class GameSession
         return level;
     }
 
+    public void Input(InputAction action)
+    {
+        switch(action)
+        {
+            case InputAction.UP:
+                if (player.position.y > 0) player.position.y -= 1;
+                break;
+            case InputAction.DOWN:
+                if (player.position.y < Level.HEIGHT) player.position.y += 1;
+                break;
+            case InputAction.LEFT:
+                if (player.position.x > 0) player.position.x -= 1;
+                break;
+            case InputAction.RIGHT:
+                if (player.position.x < Level.WIDTH) player.position.x += 1;
+                break;
+
+        }
+    }
+
+
 }
 
 class Level
 {
-    public const int LEVEL_SIZE = 16; //BOTH LENGTH AND WIDTH
+    public const int WIDTH = 128; //used to resize the terminal
+    public const int HEIGHT = 32; //used to resize the terminal
     public readonly bool[,] is_wall;
     public List<Entity> entities;
 
     public Level()
     {
-        is_wall = new bool[LEVEL_SIZE, LEVEL_SIZE];
-        for (int i = 0; i < LEVEL_SIZE; i++)
+        is_wall = new bool[HEIGHT, WIDTH];
+        for (int i = 0; i < HEIGHT; i++)
         {
-            for (int j = 0; j < LEVEL_SIZE; j++)
+            for (int j = 0; j < WIDTH; j++)
             {
                 is_wall[i, j] = false;
             }
         }
 
-        for (int i = 4; i < 13; i++)
+        for (int i = 2; i <= 12; i++)
         {
-            is_wall[i, 2] = true;
+            is_wall[i, 2] = true;   
             is_wall[i, 12] = true;
-            is_wall[2, i] = true;
-            is_wall[12, i] = true;
+            is_wall[2, i] = true;  
+            is_wall[12, i] = true; 
         }
         entities = [];
     }
 }
 
-class Entity
-{
-    public Vector2i position;
-    public string icon; //the one to be printed in console
-
-    public Entity(int x, int y, string _icon)
+class Entity(int x, int y, uint _icon)
     {
-        position = new(x, y);
-        icon = _icon;
+    public Vector2i position = new(x, y);
+    public uint icon = _icon; //the one to be printed in console
+
     }
 
-}
-
-class Character(int x, int y, string _icon, int h, int s, int a) : Entity(x, y, _icon)
+class Character(int x, int y, uint _icon, int h, int s, int a) : Entity(x, y, _icon)
 {
     public int max_health = h;
     public int current_health = h;
@@ -69,7 +86,7 @@ class Character(int x, int y, string _icon, int h, int s, int a) : Entity(x, y, 
     public int agility = a;
 }
 
-class Player(int x, int y, string _icon) : Character(x, y, _icon, 100, 5, 5)
+class Player(int x, int y) : Character(x, y, '@', 100, 5, 5)
 {
 
 }

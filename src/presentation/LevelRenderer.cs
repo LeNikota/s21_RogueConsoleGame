@@ -23,16 +23,6 @@ class LevelRenderer
         CursesLineAcs.PLUS          // N+S+W+E → '┼'
     ];
 
-    static LevelRenderer()
-    {
-        // Initialize the lookup table for masks 0..15
-        // Mask 0 (isolated wall) – use a solid block; fallback to '#'
-        WallAcsLookup[0] = '#';
-
-        // Simple vertical/horizontal lines
-
-    }
-
     enum WallDir
     {
         None  = 0,
@@ -42,31 +32,41 @@ class LevelRenderer
         East  = 8
     }
 
-    public static void PrintLevel(Level level)
+    public static void PrintLevel(nint screen, Level level)
     {
         bool[,] is_wall = level.is_wall;
-        int size = Level.LEVEL_SIZE;
+        // int height = NCurses.Lines; 
+        // int width = NCurses.Columns;
 
-        for (int y = 0; y < size; y++)
+        int width = Level.WIDTH;
+        int height = Level.HEIGHT;
+
+        for (int y = 0; y < height; y++)
         {
-            for (int x = 0; x < size; x++)
+            for (int x = 0; x < width; x++)
             {
-                if (!is_wall[x, y])
+                if (!is_wall[y, x])
                 {
-                    // Floor tile – draw a space
                     NCurses.MoveAddChar(y, x, ' ');
                     continue;
                 }
 
                 // Compute the bitmask for this wall cell
-                int mask = ((y > 0 && is_wall[x, y - 1]) ? (int)WallDir.North : 0) |
-                           ((y < size - 1 && is_wall[x, y + 1]) ? (int)WallDir.South : 0) |
-                           ((x > 0 && is_wall[x - 1, y]) ? (int)WallDir.West : 0) |
-                           ((x < size - 1 && is_wall[x + 1, y]) ? (int)WallDir.East : 0);
+                int mask = ((y > 0 && is_wall[y - 1, x]) ? (int)WallDir.North : 0) |
+                           ((y < height - 1 && is_wall[y + 1, x]) ? (int)WallDir.South : 0) |
+                           ((x > 0 && is_wall[y, x - 1]) ? (int)WallDir.West : 0) |
+                           ((x < width - 1 && is_wall[y, x + 1]) ? (int)WallDir.East : 0);
 
                 // Draw the appropriate ACS character
                 NCurses.MoveAddChar(y, x, WallAcsLookup[mask]);
             }
         }
+
+        foreach (var entity in level.entities)
+        {
+            NCurses.MoveAddChar(entity.position.y, entity.position.x, entity.icon);
+        }
+
+
     }
 }
