@@ -4,6 +4,17 @@ using domain;
 
 ResizeTerminal();
 nint screen = NCurses.InitScreen();
+NCurses.SetCursor(0);
+
+if (!NCurses.HasColors())
+{
+    NCurses.MoveAddString(NCurses.Lines / 2, NCurses.Columns / 2, "Your terminal doesn't support any colours");
+    NCurses.GetChar();
+    NCurses.EndWin();
+    return;
+}
+NCurses.StartColor();
+NCurses.InitPair(1, CursesColor.GREEN, CursesColor.BLACK);
 
 //NCurses.GetMaxYX(screen, out int maxY, out int maxX);
 //NCurses.AddString($"Max x is {maxX}, max y is {maxY}");
@@ -20,6 +31,7 @@ GameSession game = new();
 while (!shouldClose)
 {
     NCurses.Clear(); 
+    NCurses.AttributeOn(NCurses.ColorPair(1));
     LevelRenderer.PrintLevel(screen, game.GetLevel());
     NCurses.Refresh();
     int key = NCurses.GetChar();

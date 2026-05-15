@@ -1,8 +1,17 @@
 
+
 namespace domain {
 class GameSession
 {
     public enum InputAction { UP, DOWN, LEFT, RIGHT};
+    public readonly Dictionary<InputAction, Vector2i> InputDirectionMap = new()
+    {
+        {InputAction.UP, Vector2i.UP},
+        {InputAction.DOWN, Vector2i.DOWN},
+        {InputAction.LEFT, Vector2i.LEFT},
+        {InputAction.RIGHT, Vector2i.RIGHT}
+    };
+
     private Level level;
     private Player player; //lookup not to look for it all the time
 
@@ -21,24 +30,16 @@ class GameSession
 
     public void Input(InputAction action)
     {
-        switch(action)
+        if (action == InputAction.UP || action == InputAction.DOWN || action == InputAction.LEFT || action == InputAction.RIGHT)
         {
-            case InputAction.UP:
-                if (player.position.y > 0) player.position.y -= 1;
-                break;
-            case InputAction.DOWN:
-                if (player.position.y < Level.HEIGHT) player.position.y += 1;
-                break;
-            case InputAction.LEFT:
-                if (player.position.x > 0) player.position.x -= 1;
-                break;
-            case InputAction.RIGHT:
-                if (player.position.x < Level.WIDTH) player.position.x += 1;
-                break;
+            Vector2i new_pos = player.position + InputDirectionMap[action];
+            if (!level.IsPositionValid(new_pos)) return;
+            player.position = new_pos;
 
         }
-    }
+        //handle non-movement input here:
 
+    }
 
 }
 
@@ -60,41 +61,43 @@ class Level
             }
         }
 
-        for (int i = 2; i <= 12; i++)
+        for (int i = 4; i <= 14; i++)
         {
-            is_wall[i, 2] = true;   
-            is_wall[i, 12] = true;
-            is_wall[2, i] = true;  
-            is_wall[12, i] = true; 
+            is_wall[i, 4] = true;   
+            is_wall[i, 14] = true;
+            is_wall[4, i] = true;  
+            is_wall[14, i] = true; 
         }
+        is_wall[3, 4] = true;
+        is_wall[4, 3] = true;
+        is_wall[4, 15] = true;
+        is_wall[3, 14] = true;
         entities = [];
     }
-}
 
-class Entity(int x, int y, uint _icon)
+    public bool IsPositionValid(Vector2i pos)
     {
-    public Vector2i position = new(x, y);
-    public uint icon = _icon; //the one to be printed in console
-
+        if (pos.x < 0 || pos.y < 0 || pos.x >= WIDTH || pos.y >= HEIGHT || is_wall[pos.y, pos.x]) return false;
+        return true;
     }
-
-class Character(int x, int y, uint _icon, int h, int s, int a) : Entity(x, y, _icon)
-{
-    public int max_health = h;
-    public int current_health = h;
-    public int strength = s;
-    public int agility = a;
-}
-
-class Player(int x, int y) : Character(x, y, '@', 100, 5, 5)
-{
-
 }
 
 class Vector2i(int _x, int _y)
 {
     public int x = _x;
     public int y = _y;
+
+    public static readonly Vector2i ZERO = new(0, 0);
+
+    public static readonly Vector2i UP = new(0, -1);
+    public static readonly Vector2i DOWN = new(0, 1);
+    public static readonly Vector2i LEFT = new(-1, 0);
+    public static readonly Vector2i RIGHT = new(1, 0);
+
+    public static Vector2i operator +(Vector2i a, Vector2i b)
+    {
+        return new Vector2i(a.x + b.x, a.y + b.y);
+    }
 
     public double DistanceTo(Vector2i other)
     {

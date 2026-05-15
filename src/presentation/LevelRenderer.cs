@@ -25,14 +25,15 @@ class LevelRenderer
 
     enum WallDir
     {
-        None  = 0,
         North = 1,
         South = 2,
         West  = 4,
         East  = 8
     }
 
-    public static void PrintLevel(nint screen, Level level)
+
+
+    public static void PrintLevel(Level level)
     {
         bool[,] is_wall = level.is_wall;
         // int height = NCurses.Lines; 
