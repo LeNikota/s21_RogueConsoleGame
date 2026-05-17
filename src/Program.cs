@@ -14,14 +14,10 @@ if (!NCurses.HasColors())
     return;
 }
 NCurses.StartColor();
-NCurses.InitPair(1, CursesColor.GREEN, CursesColor.BLACK);
-
-//NCurses.GetMaxYX(screen, out int maxY, out int maxX);
-//NCurses.AddString($"Max x is {maxX}, max y is {maxY}");
-//NCurses.Refresh();
-//NCurses.GetChar();
+LevelRenderer.InitColors();
 
 NCurses.Keypad(screen, true); 
+NCurses.TimeOut(10); //GetChar will wait for 10 ms
 //NCurses.NoDelay(screen, true);
 NCurses.NoEcho();
 
@@ -30,11 +26,19 @@ GameSession game = new();
 
 while (!shouldClose)
 {
-    NCurses.Clear(); 
-    NCurses.AttributeOn(NCurses.ColorPair(1));
-    LevelRenderer.PrintLevel(screen, game.GetLevel());
+    if (game.isOver) break;
+    LevelRenderer.PrintLevel(game.GetLevel());
     NCurses.Refresh();
+    shouldClose = Input(game);
+}
+
+NCurses.EndWin();
+
+
+static bool Input(GameSession game)
+{
     int key = NCurses.GetChar();
+    if (key == -1) return false; //instead of ERR
     
     switch (key)
     {
@@ -51,16 +55,13 @@ while (!shouldClose)
             game.Input(GameSession.InputAction.RIGHT);
             break;
         case CursesKey.ESC:
-            shouldClose = true;
-            break;
+            return true;
         default:
             //NCurses.MoveAddString(0, 0, "Unknown input");
             break;
     }
-    
+    return false;
 }
-
-NCurses.EndWin();
 
 static void ResizeTerminal()
 {

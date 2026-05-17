@@ -23,14 +23,18 @@ class LevelRenderer
         CursesLineAcs.PLUS          // N+S+W+E → '┼'
     ];
 
-    enum WallDir
+    enum WallDir {North = 1, South = 2, West  = 4, East  = 8}
+    private static readonly Dictionary<Type, short> EnemyColor = new()
     {
-        North = 1,
-        South = 2,
-        West  = 4,
-        East  = 8
-    }
+        {typeof(Zombie), 1}, {typeof(Vampire), 2}, {typeof(Ogre), 3}
+    };
 
+    public static void InitColors()
+    {
+        NCurses.InitPair(1, CursesColor.GREEN, CursesColor.BLACK);
+        NCurses.InitPair(2, CursesColor.RED, CursesColor.BLACK);
+        NCurses.InitPair(3, CursesColor.YELLOW, CursesColor.BLACK);
+    }
 
 
     public static void PrintLevel(Level level)
@@ -51,20 +55,26 @@ class LevelRenderer
                     NCurses.MoveAddChar(y, x, ' ');
                     continue;
                 }
-
-                // Compute the bitmask for this wall cell
                 int mask = ((y > 0 && is_wall[y - 1, x]) ? (int)WallDir.North : 0) |
                            ((y < height - 1 && is_wall[y + 1, x]) ? (int)WallDir.South : 0) |
                            ((x > 0 && is_wall[y, x - 1]) ? (int)WallDir.West : 0) |
                            ((x < width - 1 && is_wall[y, x + 1]) ? (int)WallDir.East : 0);
 
-                // Draw the appropriate ACS character
                 NCurses.MoveAddChar(y, x, WallAcsLookup[mask]);
             }
         }
 
         foreach (var entity in level.entities)
         {
+            var entity_type = entity.GetType();
+            if (entity is Enemy && EnemyColor.TryGetValue(entity_type, out short value))
+            {
+                NCurses.AttributeSet(NCurses.ColorPair(value));
+            } else
+            {
+                NCurses.AttributeSet(NCurses.ColorPair(0));
+            }
+            
             NCurses.MoveAddChar(entity.position.y, entity.position.x, entity.icon);
         }
 

@@ -21,7 +21,6 @@ class Enemy(int x, int y, uint _icon, (int hp, int s, int a, int h) stats) : Cha
         int hostility = ((int)host_f + 1) * 2;
         return (health, strength, agility, hostility);
     }
-
 }
 
 class Zombie(int x, int y) : Enemy(x, y, 'z', StatFactor.HIGH, StatFactor.MEDIUM, StatFactor.LOW, StatFactor.MEDIUM)

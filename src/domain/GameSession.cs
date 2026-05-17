@@ -12,15 +12,20 @@ class GameSession
         {InputAction.RIGHT, Vector2i.RIGHT}
     };
 
-    private Level level;
-    private Player player; //lookup not to look for it all the time
+    private readonly Level level;
+    private readonly Player player; //lookup not to look for it all the time
 
+    public bool isOver = false;
 
     public GameSession()
     {
         level = new Level();
         player = new Player(8, 8);
         level.entities.Add(player);
+        level.entities.Add(new Zombie(8, 10));
+        level.entities.Add(new Vampire(10, 8));
+        level.entities.Add(new Ogre(10, 10));
+        level.entities.Add(new Ghost(12, 12));
     }
 
     public Level GetLevel()
@@ -34,52 +39,42 @@ class GameSession
         {
             Vector2i new_pos = player.position + InputDirectionMap[action];
             if (!level.IsPositionValid(new_pos)) return;
-            player.position = new_pos;
+            Entity? entity = level.GetEntityByPos(new_pos);
+            if (entity == null)
+            {
+                player.position = new_pos;
+            } 
+            else if (entity is Enemy)
+            {
+                bool isDead = Attack(player, (Character)entity);
+                if (isDead)
+                {
+                    level.entities.Remove(entity);
+                    //TO DO: GIVE PLAYER A TREASURE here
+                    return;
+                }
+                isDead = Attack((Character)entity, player);
+                isOver = isDead;
+            } 
+            //else (entity as items are not implemented yet)
+            
 
         }
         //handle non-movement input here:
 
     }
 
-}
-
-class Level
-{
-    public const int WIDTH = 128; //used to resize the terminal
-    public const int HEIGHT = 32; //used to resize the terminal
-    public readonly bool[,] is_wall;
-    public List<Entity> entities;
-
-    public Level()
+    private static bool Attack(Character c1, Character c2)
     {
-        is_wall = new bool[HEIGHT, WIDTH];
-        for (int i = 0; i < HEIGHT; i++)
+        var rand = new Random();
+        int roll = rand.Next(21);
+        if (roll + c1.Agility >= 10 + c2.Agility)
         {
-            for (int j = 0; j < WIDTH; j++)
-            {
-                is_wall[i, j] = false;
-            }
+            return c2.Hit(c1.GetDamage()); //returns if it is dead
         }
-
-        for (int i = 4; i <= 14; i++)
-        {
-            is_wall[i, 4] = true;   
-            is_wall[i, 14] = true;
-            is_wall[4, i] = true;  
-            is_wall[14, i] = true; 
-        }
-        is_wall[3, 4] = true;
-        is_wall[4, 3] = true;
-        is_wall[4, 15] = true;
-        is_wall[3, 14] = true;
-        entities = [];
+        return false;
     }
 
-    public bool IsPositionValid(Vector2i pos)
-    {
-        if (pos.x < 0 || pos.y < 0 || pos.x >= WIDTH || pos.y >= HEIGHT || is_wall[pos.y, pos.x]) return false;
-        return true;
-    }
 }
 
 class Vector2i(int _x, int _y)
@@ -99,11 +94,33 @@ class Vector2i(int _x, int _y)
         return new Vector2i(a.x + b.x, a.y + b.y);
     }
 
+    public static bool operator ==(Vector2i a, Vector2i b)
+    {
+        return a.x == b.x && a.y == b.y;
+    }
+
+    public static bool operator !=(Vector2i a, Vector2i b)
+    {
+        return a.x != b.x || a.y != b.y;
+    }
+
     public double DistanceTo(Vector2i other)
     {
         return Math.Sqrt(Math.Pow(other.x - x, 2) + Math.Pow(other.y - y, 2));
     }
 
-};
+    public override bool Equals(object? obj)
+    {
+        if (obj is null) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        return this == (Vector2i)obj;
+    }
+
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
+    }
+}
+
 
 } //domain
