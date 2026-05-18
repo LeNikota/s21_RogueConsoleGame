@@ -3,6 +3,7 @@ using domain;
 
 class LevelRenderer
 {
+    private static readonly int Y_OFFSET = 1; //to render a line below (the very first line is UI)
     private static readonly uint[] WallAcsLookup =
     [
         '#',                         // isolated wall (fallback)
@@ -40,19 +41,17 @@ class LevelRenderer
     public static void PrintLevel(Level level)
     {
         bool[,] is_wall = level.is_wall;
-        // int height = NCurses.Lines; 
-        // int width = NCurses.Columns;
-
         int width = Level.WIDTH;
         int height = Level.HEIGHT;
-
+        NCurses.AttributeSet(NCurses.ColorPair(0));
+        
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
                 if (!is_wall[y, x])
                 {
-                    NCurses.MoveAddChar(y, x, ' ');
+                    NCurses.MoveAddChar(y + Y_OFFSET, x, ' ');
                     continue;
                 }
                 int mask = ((y > 0 && is_wall[y - 1, x]) ? (int)WallDir.North : 0) |
@@ -60,23 +59,30 @@ class LevelRenderer
                            ((x > 0 && is_wall[y, x - 1]) ? (int)WallDir.West : 0) |
                            ((x < width - 1 && is_wall[y, x + 1]) ? (int)WallDir.East : 0);
 
-                NCurses.MoveAddChar(y, x, WallAcsLookup[mask]);
+                NCurses.MoveAddChar(y + Y_OFFSET, x, WallAcsLookup[mask]);
             }
         }
 
+        Player? player = null;
+        
         foreach (var entity in level.entities)
         {
+            if (entity is Player _player)
+            {
+                player = _player; //always on top
+                continue;
+            }
             var entity_type = entity.GetType();
             if (entity is Enemy && EnemyColor.TryGetValue(entity_type, out short value))
             {
                 NCurses.AttributeSet(NCurses.ColorPair(value));
-            } else
-            {
-                NCurses.AttributeSet(NCurses.ColorPair(0));
-            }
+            } 
             
-            NCurses.MoveAddChar(entity.position.y, entity.position.x, entity.icon);
+            NCurses.MoveAddChar(entity.position.y + Y_OFFSET, entity.position.x, entity.icon);
+            NCurses.AttributeSet(NCurses.ColorPair(0));
         }
+
+        NCurses.MoveAddChar(player!.position.y + Y_OFFSET, player.position.x, player.icon);
 
 
     }

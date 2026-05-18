@@ -7,9 +7,13 @@ class Character(int x, int y, uint _icon, int h, int s, int a) : Entity(x, y, _i
     public int Strength = s;
     public int Agility = a;
 
-    public bool Hit(int damage)
+    public void TakeDamage(int damage)
     {
         CurrentHealth -= damage;
+    }
+
+    public bool IsDead()
+    {
         return CurrentHealth <= 0;
     }
 

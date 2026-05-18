@@ -18,18 +18,6 @@ class Level
                 is_wall[i, j] = false;
             }
         }
-
-        for (int i = 4; i <= 14; i++)
-        {
-            is_wall[i, 4] = true;   
-            is_wall[i, 14] = true;
-            is_wall[4, i] = true;  
-            is_wall[14, i] = true; 
-        }
-        is_wall[3, 4] = true;
-        is_wall[4, 3] = true;
-        is_wall[4, 15] = true;
-        is_wall[3, 14] = true;
         entities = [];
     }
 

@@ -16,21 +16,26 @@ class GameSession
     private readonly Player player; //lookup not to look for it all the time
 
     public bool isOver = false;
+    public string GameLog = "Welcome to s21_rogue!";
 
     public GameSession()
     {
         level = new Level();
         player = new Player(8, 8);
         level.entities.Add(player);
-        level.entities.Add(new Zombie(8, 10));
-        level.entities.Add(new Vampire(10, 8));
-        level.entities.Add(new Ogre(10, 10));
-        level.entities.Add(new Ghost(12, 12));
+        level.entities.Add(new Zombie(8, 24));
+        level.entities.Add(new Weapon(10, 10));
+        level.entities.Add(new Food(12, 12));
     }
 
     public Level GetLevel()
     {
         return level;
+    }
+
+    public Player GetPlayer()
+    {
+        return player;
     }
 
     public void Input(InputAction action)
@@ -40,28 +45,73 @@ class GameSession
             Vector2i new_pos = player.position + InputDirectionMap[action];
             if (!level.IsPositionValid(new_pos)) return;
             Entity? entity = level.GetEntityByPos(new_pos);
-            if (entity == null)
+            
+            if (entity == null) 
+                player.position = new_pos;
+            else if (entity is Enemy enemy) 
+                OnEnemyTouched(enemy);
+            else if (entity is Item item)
             {
                 player.position = new_pos;
-            } 
-            else if (entity is Enemy)
-            {
-                bool isDead = Attack(player, (Character)entity);
-                if (isDead)
-                {
-                    level.entities.Remove(entity);
-                    //TO DO: GIVE PLAYER A TREASURE here
-                    return;
-                }
-                isDead = Attack((Character)entity, player);
-                isOver = isDead;
-            } 
-            //else (entity as items are not implemented yet)
+                OnItemTouched(item);
+            }
             
 
         }
         //handle non-movement input here:
 
+    }
+
+    private void OnEnemyTouched(Enemy enemy)
+    {
+        GameLog = "";
+        string enemy_name = enemy.GetType().Name;
+        bool isHit = Attack(player, enemy);
+        if (isHit)
+        {
+            GameLog += $"You hit the {enemy_name}. ";
+        }
+        else
+        {
+            GameLog += $"You miss {enemy_name}. ";
+        }
+        
+        if (enemy.IsDead())
+        {
+            GameLog += $"{enemy_name} dies!";
+            level.entities.Remove(enemy);
+            //TO DO: GIVE PLAYER A TREASURE here
+            return;
+        }
+
+        isHit = Attack(enemy, player);
+        if (isHit)
+        {
+            GameLog += $"{enemy_name} hits you. ";
+        } 
+        else
+        {
+            GameLog += $"{enemy_name} misses you. ";
+        }
+        if (player.IsDead())
+        {
+            isOver = true;
+            GameLog += "You die. Game is over, press any key to exit.";
+        } 
+    }
+
+    private void OnItemTouched(Item item)
+    {
+        GameLog = "";
+        if (player.PickItem(item))
+        {
+            GameLog += $"You pick up {item.name}";
+            level.entities.Remove(item);
+        }
+        else
+        {
+            GameLog += $"You can't pick up {item.name}, your backpack is full";
+        }
     }
 
     private static bool Attack(Character c1, Character c2)
@@ -70,7 +120,8 @@ class GameSession
         int roll = rand.Next(21);
         if (roll + c1.Agility >= 10 + c2.Agility)
         {
-            return c2.Hit(c1.GetDamage()); //returns if it is dead
+            c2.TakeDamage(c1.GetDamage());
+            return true; //returns if hit
         }
         return false;
     }

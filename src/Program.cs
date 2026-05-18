@@ -17,7 +17,7 @@ NCurses.StartColor();
 LevelRenderer.InitColors();
 
 NCurses.Keypad(screen, true); 
-NCurses.TimeOut(10); //GetChar will wait for 10 ms
+//NCurses.TimeOut(10); //GetChar will wait for 10 ms (to save resources)
 //NCurses.NoDelay(screen, true);
 NCurses.NoEcho();
 
@@ -26,19 +26,23 @@ GameSession game = new();
 
 while (!shouldClose)
 {
-    if (game.isOver) break;
+    if (game.isOver) NCurses.TimeOut(-1);
+
+    //NCurses.Clear();
     LevelRenderer.PrintLevel(game.GetLevel());
+    UIRenderer.PrintUI(game);
     NCurses.Refresh();
+    
     shouldClose = Input(game);
 }
-
 NCurses.EndWin();
 
 
 static bool Input(GameSession game)
 {
     int key = NCurses.GetChar();
-    if (key == -1) return false; //instead of ERR
+    //if (key == -1) return false; //instead of ERR
+    if (game.isOver) return true;
     
     switch (key)
     {
@@ -66,7 +70,7 @@ static bool Input(GameSession game)
 static void ResizeTerminal()
 {
     int width = Level.WIDTH; 
-    int height = Level.HEIGHT + 1; //+1 otherwise it throws ERR (mb add extra for the UI)
+    int height = Level.HEIGHT + 2; //+2 for the UI
     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
     {
         Console.BufferWidth = width;

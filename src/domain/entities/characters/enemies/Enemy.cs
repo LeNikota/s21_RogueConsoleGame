@@ -2,7 +2,7 @@ namespace domain
 {
 class Enemy(int x, int y, uint _icon, (int hp, int s, int a, int h) stats) : Character(x, y, _icon, stats.hp, stats.s, stats.a)
 {
-    public enum StatFactor { LOW, MEDIUM, HIGH, VERY_HIGH};
+    public enum StatFactor {LOW, MEDIUM, HIGH, VERY_HIGH};
     public int hostility = stats.h;
 
     public Enemy(int x, int y, uint _icon, StatFactor hp_f, StatFactor st_f, StatFactor ag_f, StatFactor host_f) : 
