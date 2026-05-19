@@ -40,10 +40,11 @@ class GameSession
 
     public void Input(InputAction action)
     {
+        GameLog = "";
         if (action == InputAction.UP || action == InputAction.DOWN || action == InputAction.LEFT || action == InputAction.RIGHT)
         {
             Vector2i new_pos = player.position + InputDirectionMap[action];
-            if (!level.IsPositionValid(new_pos)) return;
+            if (!level.IsPositionValid(new_pos)) return; //no movement nor enemey turn
             Entity? entity = level.GetEntityByPos(new_pos);
             
             if (entity == null) 
@@ -56,15 +57,34 @@ class GameSession
                 OnItemTouched(item);
             }
             
-
         }
         //handle non-movement input here:
+
+        //enemy turn:
+        foreach(Enemy enemy in level.entities.FindAll(e => e is Enemy).Cast<Enemy>())
+        {
+            if (isOver) return;
+            
+            if (enemy.position.DistanceTo(player.position) > enemy.hostility)
+            {
+                enemy.MovePeacefully(level);
+                continue;
+            }
+            List<Vector2i> path = PathFinder.FindPath(level, enemy.position, player.position);
+            if (path.Count == 0)
+            {
+                //no path to player
+                enemy.MovePeacefully(level);
+                continue; 
+            }
+            if (path[0] == player.position) OnEnemyTouchingPlayer(enemy);
+            else enemy.position = path[0];
+        }
 
     }
 
     private void OnEnemyTouched(Enemy enemy)
     {
-        GameLog = "";
         string enemy_name = enemy.GetType().Name;
         bool isHit = Attack(player, enemy);
         if (isHit)
@@ -83,8 +103,12 @@ class GameSession
             //TO DO: GIVE PLAYER A TREASURE here
             return;
         }
+    }
 
-        isHit = Attack(enemy, player);
+    private void OnEnemyTouchingPlayer(Enemy enemy)
+    {
+        string enemy_name = enemy.GetType().Name;
+        bool isHit = Attack(enemy, player);
         if (isHit)
         {
             GameLog += $"{enemy_name} hits you. ";
@@ -102,22 +126,20 @@ class GameSession
 
     private void OnItemTouched(Item item)
     {
-        GameLog = "";
         if (player.PickItem(item))
         {
-            GameLog += $"You pick up {item.name}";
+            GameLog += $"You pick up a {item.name}";
             level.entities.Remove(item);
         }
         else
         {
-            GameLog += $"You can't pick up {item.name}, your backpack is full";
+            GameLog += $"Your backpack is full";
         }
     }
 
     private static bool Attack(Character c1, Character c2)
     {
-        var rand = new Random();
-        int roll = rand.Next(21);
+        int roll = Random.Shared.Next(21);
         if (roll + c1.Agility >= 10 + c2.Agility)
         {
             c2.TakeDamage(c1.GetDamage());
@@ -127,51 +149,5 @@ class GameSession
     }
 
 }
-
-class Vector2i(int _x, int _y)
-{
-    public int x = _x;
-    public int y = _y;
-
-    public static readonly Vector2i ZERO = new(0, 0);
-
-    public static readonly Vector2i UP = new(0, -1);
-    public static readonly Vector2i DOWN = new(0, 1);
-    public static readonly Vector2i LEFT = new(-1, 0);
-    public static readonly Vector2i RIGHT = new(1, 0);
-
-    public static Vector2i operator +(Vector2i a, Vector2i b)
-    {
-        return new Vector2i(a.x + b.x, a.y + b.y);
-    }
-
-    public static bool operator ==(Vector2i a, Vector2i b)
-    {
-        return a.x == b.x && a.y == b.y;
-    }
-
-    public static bool operator !=(Vector2i a, Vector2i b)
-    {
-        return a.x != b.x || a.y != b.y;
-    }
-
-    public double DistanceTo(Vector2i other)
-    {
-        return Math.Sqrt(Math.Pow(other.x - x, 2) + Math.Pow(other.y - y, 2));
-    }
-
-    public override bool Equals(object? obj)
-    {
-        if (obj is null) return false;
-        if (ReferenceEquals(this, obj)) return true;
-        return this == (Vector2i)obj;
-    }
-
-    public override int GetHashCode()
-    {
-        throw new NotImplementedException();
-    }
-}
-
 
 } //domain
