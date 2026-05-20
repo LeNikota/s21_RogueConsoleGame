@@ -58,7 +58,7 @@ namespace domain
 
             is_wall = new bool[HEIGHT, WIDTH]; // [Y, X]
 
-            // Initialize all to false (optional, default is false)
+            // Initialize all to false
             Array.Clear(is_wall, 0, is_wall.Length);
 
             // 1. Draw Rooms
@@ -95,39 +95,50 @@ namespace domain
                 }
             }
 
-            // 2. Draw Passages (Fill them as empty space, or draw walls around them)
-            // Assuming passages are hollow corridors, we usually just ensure they are NOT walls.
-            // If your Passage object includes walls, use similar logic to above.
-            foreach (var passage in passages)
+            foreach (var passageGroup in passages) // Your List<List<Passage>>
             {
-                if (passage == null) continue;
-
-                int startX = passage.Position.X;
-                int startY = passage.Position.Y;
-                int endX = startX + passage.Size.X;
-                int endY = startY + passage.Size.Y;
-
-                // Clamp to bounds
-                startX = Math.Max(0, startX);
-                startY = Math.Max(0, startY);
-                endX = Math.Min(WIDTH, endX);
-                endY = Math.Min(HEIGHT, endY);
-
-                for (int y = startY; y < endY; y++)
+                foreach (var pass in passageGroup)
                 {
+                    if (pass == null) continue;
+
+                    int startX = pass.Position.X;
+                    int startY = pass.Position.Y;
+                    int endX = startX + pass.Size.X;
+                    int endY = startY + pass.Size.Y;
+
+                    // Bounds check
+                    if (startX < 0 || startY < 0 || endX > WIDTH || endY > HEIGHT) continue;
+
+                    // 1. Draw the Border (Walls)
+                    // Top and Bottom rows
                     for (int x = startX; x < endX; x++)
                     {
-                        // Passages are walkable, so ensure they are FALSE (not walls)
-                        // Or if you want passage walls, set specific borders to true
-                        is_wall[y, x] = true;
+                        if (startY >= 0 && startY < HEIGHT) is_wall[startY, x] = true;       // Top
+                        if (endY - 1 >= 0 && endY - 1 < HEIGHT) is_wall[endY - 1, x] = true; // Bottom
+                    }
+                    // Left and Right columns
+                    for (int y = startY; y < endY; y++)
+                    {
+                        if (startX >= 0 && startX < WIDTH) is_wall[y, startX] = true;       // Left
+                        if (endX - 1 >= 0 && endX - 1 < WIDTH) is_wall[y, endX - 1] = true; // Right
+                    }
+
+                    // 2. Clear the Inside (Make it hollow/walkable)
+                    // Iterate from startX+1 to endX-1 and startY+1 to endY-1
+                    for (int y = startY + 1; y < endY - 1; y++)
+                    {
+                        for (int x = startX + 1; x < endX - 1; x++)
+                        {
+                            if (y >= 0 && y < HEIGHT && x >= 0 && x < WIDTH)
+                            {
+                                is_wall[y, x] = false; // False = Walkable space
+                            }
+                        }
                     }
                 }
             }
 
             entities = new List<Entity>();
-
-            // Debug Output
-            Console.WriteLine($"Generated {rooms.Length} rooms. Map size: {WIDTH}x{HEIGHT}");
         }
 
         public bool IsPositionValid(Vector2i pos)

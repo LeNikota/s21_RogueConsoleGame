@@ -50,6 +50,10 @@ while (!shouldClose)
         case 'd': case 'D': case CursesKey.RIGHT:
             game.Input(GameSession.InputAction.RIGHT);
             break;
+        //! Delete - generates new level
+        case 'n': case 'N':
+            game = new();
+            break;
         case CursesKey.ESC:
             shouldClose = true;
             break;
