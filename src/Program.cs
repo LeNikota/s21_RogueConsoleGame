@@ -32,10 +32,10 @@ while (!shouldClose)
 {
     NCurses.Clear(); 
     NCurses.AttributeOn(NCurses.ColorPair(1));
-    LevelRenderer.PrintLevel(screen, game.GetLevel());
+    LevelRenderer.PrintLevel(game.GetLevel());
     NCurses.Refresh();
     int key = NCurses.GetChar();
-    
+
     switch (key)
     {
         case 'w': case 'W': case CursesKey.UP:
@@ -57,7 +57,7 @@ while (!shouldClose)
             //NCurses.MoveAddString(0, 0, "Unknown input");
             break;
     }
-    
+
 }
 
 NCurses.EndWin();
@@ -80,3 +80,4 @@ static void ResizeTerminal()
         Thread.Sleep(100); // give terminal time to react
     }
 }
+
