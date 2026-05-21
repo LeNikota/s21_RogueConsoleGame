@@ -1,10 +1,3 @@
-using System.Numerics;
-
-
-/// <summary>
-///     Файл для работы с процедурной генерацией.
-///     Содержит статический класс генерации уровня: комнат и коридоров.
-/// </summary>
 namespace domain.generation
 {
     public readonly record struct Vector2i(int X, int Y)
@@ -28,7 +21,11 @@ namespace domain.generation
 
     class Room(Vector2i position, Vector2i size) : Object(position, size) { }
 
-    class Passage(Vector2i position, Vector2i size) : Object(position, size) { }
+    class Passage(Vector2i position, Vector2i size, Vector2i entrance, Vector2i exit) : Object(position, size)
+    {
+        public Vector2i Entrance = entrance;
+        public Vector2i Exit = exit;
+    }
 
     public readonly record struct Edge(int V1, int V2);
 
@@ -49,20 +46,11 @@ namespace domain.generation
         const int ROOMS_IN_COLUMN = 3;
 
         // These consts must be greater than MAX_ROOM_WIDTH and MAX_ROOM_HEIGH
-        const int REGION_WIDTH = 35;
+        const int REGION_WIDTH = 30;
         const int REGION_HEIGHT = 10;
 
+
         static readonly Random rand = new();
-
-
-        static void GenerateLevel()
-        {
-            Level level = new();
-            Player player = new(0, 0);
-
-            Room[] rooms = GenerateRooms(/*level*/);
-            List<List<Passage>> passages = GeneratePassages(rooms);
-        }
 
         public static Room[] GenerateRooms(/*Level level*/)
         {
@@ -113,12 +101,12 @@ namespace domain.generation
             return edges;
         }
 
-        static Passage GeneratePassage(int x, int y, int width, int height)
+        static Passage GeneratePassage(int x, int y, int width, int height, Vector2i entrance, Vector2i exit)
         {
             var position = new Vector2i(x, y);
             var size = new Vector2i(width, height);
 
-            return new Passage(position, size);
+            return new Passage(position, size, entrance, exit);
         }
 
         static List<Passage> GenerateHorizontalPassage(Room first_room, Room second_room)
@@ -146,30 +134,33 @@ namespace domain.generation
             if (first_y == second_y)
             {
                 int width = Math.Abs(second_x - first_x) + 1;
-                passages.Add(GeneratePassage(first_x, first_y, width, 3));
+                passages.Add(GeneratePassage(first_x, first_y, width, 3, new Vector2i(first_x, first_y + 1), new Vector2i(second_x, first_y + 1)));
             }
             else if (x_diff == 2)
             {
                 int height = Math.Abs(second_y - first_y) + 3;
-                passages.Add(GeneratePassage(first_x, min_y, 3, height));
+                passages.Add(GeneratePassage(first_x, min_y, 3, height, new Vector2i(first_x, first_y + 1), new Vector2i(second_x, second_y + 1)));
             }
             else if (x_diff >= 3 && x_diff <= 5)
             {
                 int height = Math.Abs(second_y - first_y) + 3;
-                passages.Add(GeneratePassage(first_x, min_y, 3, height));
-                passages.Add(GeneratePassage(first_x + 2, second_y, x_diff - 1, 3));
+                passages.Add(GeneratePassage(first_x, min_y, x_diff + 1, height, new Vector2i(first_x, first_y + 1), new Vector2i(second_x, second_y + 1)));
+
+                // Old: Two separate passage
+                // passages.Add(GeneratePassage(first_x, min_y, 3, height, new Vector2i(), new Vector2i()));
+                // passages.Add(GeneratePassage(first_x + 2, second_y, x_diff - 1, 3, new Vector2i(), new Vector2i()));
             }
             else
             {
                 // 1. Horizontal from first room to bend
                 int bend_x = rand.Next(min_x + 2, max_x - 3);
-                passages.Add(GeneratePassage(first_x, first_y, Math.Abs(bend_x - first_x) + 1, 3));
+                passages.Add(GeneratePassage(first_x, first_y, Math.Abs(bend_x - first_x) + 1, 3, new Vector2i(first_x, first_y + 1), new Vector2i(bend_x, first_y + 1)));
 
-                // // 2. Vertical bend
-                passages.Add(GeneratePassage(bend_x, min_y, 3, Math.Abs(max_y - min_y) + 3));
+                // 2. Vertical bend
+                passages.Add(GeneratePassage(bend_x, min_y, 3, Math.Abs(max_y - min_y) + 3, new Vector2i(bend_x, first_y + 1), new Vector2i(bend_x + 2, second_y + 1)));
 
-                // // 3. Horizontal from bend to second room
-                passages.Add(GeneratePassage(bend_x + 2, second_y, Math.Abs(second_x - bend_x) - 1, 3));
+                // 3. Horizontal from bend to second room
+                passages.Add(GeneratePassage(bend_x + 2, second_y, Math.Abs(second_x - bend_x) - 1, 3, new Vector2i(bend_x + 2, second_y + 1), new Vector2i(second_x, second_y + 1)));
             }
 
             return passages;
@@ -199,30 +190,33 @@ namespace domain.generation
             if (first_x == second_x)
             {
                 int height = Math.Abs(second_y - first_y) + 1;
-                passages.Add(GeneratePassage(first_x, first_y, 3, height));
+                passages.Add(GeneratePassage(first_x, first_y, 3, height, new Vector2i(first_x + 1, first_y), new Vector2i(second_x + 1, second_y)));
             }
             else if (y_diff == 2)
             {
                 int width = Math.Abs(max_x - min_x) + 3;
-                passages.Add(GeneratePassage(min_x, first_y, width, 3));
+                passages.Add(GeneratePassage(min_x, first_y, width, 3, new Vector2i(first_x + 1, first_y), new Vector2i(second_x + 1, second_y)));
             }
             else if (y_diff >= 3 && y_diff <= 5)
             {
                 int width = Math.Abs(max_x - min_x) + 3;
-                passages.Add(GeneratePassage(min_x, first_y, width, 3));
-                passages.Add(GeneratePassage(second_x, first_y + 2, 3, y_diff - 1));
+                passages.Add(GeneratePassage(min_x, first_y, width, y_diff + 1, new Vector2i(first_x + 1, first_y), new Vector2i(second_x + 1, second_y)));
+
+                // Old: Two separate passage
+                // passages.Add(GeneratePassage(min_x, first_y, width, 3, new Vector2i(), new Vector2i()));
+                // passages.Add(GeneratePassage(second_x, first_y + 2, 3, y_diff - 1, new Vector2i(), new Vector2i()));
             }
             else
             {
                 // 1. Horizontal from first room to bend
                 int bend_y = rand.Next(min_y + 2, max_y - 3);
-                passages.Add(GeneratePassage(first_x, first_y, 3, Math.Abs(bend_y - first_y) + 1));
+                passages.Add(GeneratePassage(first_x, first_y, 3, Math.Abs(bend_y - first_y) + 1, new Vector2i(first_x + 1, first_y), new Vector2i(first_x + 1, bend_y)));
 
-                // 2. Vertical bend
-                passages.Add(GeneratePassage(min_x, bend_y, Math.Abs(max_x - min_x) + 3, 3));
+                // // 2. Vertical bend
+                passages.Add(GeneratePassage(min_x, bend_y, Math.Abs(max_x - min_x) + 3, 3, new Vector2i(first_x + 1, bend_y), new Vector2i(second_x + 1, bend_y + 2)));
 
-                // 3. Horizontal from bend to second room
-                passages.Add(GeneratePassage(second_x, bend_y + 2, 3, Math.Abs(second_y - bend_y) - 1));
+                // // 3. Horizontal from bend to second room
+                passages.Add(GeneratePassage(second_x, bend_y + 2, 3, Math.Abs(second_y - bend_y) - 1, new Vector2i(second_x + 1, bend_y + 2), new Vector2i(second_x + 1, second_y)));
             }
 
             return passages;
@@ -268,6 +262,95 @@ namespace domain.generation
             // }
 
             return doors;
+        }
+
+        public static bool[,] ConvertToArray(Room[] rooms, List<List<Passage>> passages, int WIDTH, int HEIGHT)
+        {
+            bool[,] is_wall = new bool[HEIGHT, WIDTH];
+
+            // Initialize all to false
+            Array.Clear(is_wall, 0, is_wall.Length);
+
+            foreach (var room in rooms)
+            {
+                if (room == null) continue;
+
+                int startX = room.Position.X;
+                int startY = room.Position.Y;
+                int endX = startX + room.Size.X;
+                int endY = startY + room.Size.Y;
+
+                // Safety check to ensure we don't draw outside the map
+                if (startX < 0 || startY < 0 || endX > WIDTH || endY > HEIGHT)
+                {
+                    Console.WriteLine($"Warning: Room at {startX},{startY} is out of bounds ({WIDTH}x{HEIGHT})");
+                    continue;
+                }
+
+                // Draw Top and Bottom Walls (Horizontal lines)
+                // Loop X from start to end. Index array as [Y, X]
+                for (int x = startX; x < endX; x++)
+                {
+                    if (startY >= 0 && startY < HEIGHT) is_wall[startY, x] = true;             // Top
+                    if (endY - 1 >= 0 && endY - 1 < HEIGHT) is_wall[endY - 1, x] = true;       // Bottom
+                }
+
+                // Draw Left and Right Walls (Vertical lines)
+                // Loop Y from start to end. Index array as [Y, X]
+                for (int y = startY; y < endY; y++)
+                {
+                    if (startX >= 0 && startX < WIDTH) is_wall[y, startX] = true;              // Left
+                    if (endX - 1 >= 0 && endX - 1 < WIDTH) is_wall[y, endX - 1] = true;        // Right
+                }
+            }
+
+            foreach (var passageGroup in passages)
+            {
+                foreach (var pass in passageGroup)
+                {
+                    if (pass == null) continue;
+
+                    int startX = pass.Position.X;
+                    int startY = pass.Position.Y;
+                    int endX = startX + pass.Size.X;
+                    int endY = startY + pass.Size.Y;
+
+                    // Bounds check
+                    if (startX < 0 || startY < 0 || endX > WIDTH || endY > HEIGHT) continue;
+
+                    // 1. Draw the Border (Walls)
+                    // Top and Bottom rows
+                    for (int x = startX; x < endX; x++)
+                    {
+                        if (startY >= 0 && startY < HEIGHT) is_wall[startY, x] = true;       // Top
+                        if (endY - 1 >= 0 && endY - 1 < HEIGHT) is_wall[endY - 1, x] = true; // Bottom
+                    }
+                    // Left and Right columns
+                    for (int y = startY; y < endY; y++)
+                    {
+                        if (startX >= 0 && startX < WIDTH) is_wall[y, startX] = true;       // Left
+                        if (endX - 1 >= 0 && endX - 1 < WIDTH) is_wall[y, endX - 1] = true; // Right
+                    }
+
+                    // 2. Clear the Inside (Make it hollow/walkable)
+                    // Iterate from startX+1 to endX-1 and startY+1 to endY-1
+                    for (int y = startY + 1; y < endY - 1; y++)
+                    {
+                        for (int x = startX + 1; x < endX - 1; x++)
+                        {
+                            if (y >= 0 && y < HEIGHT && x >= 0 && x < WIDTH)
+                            {
+                                is_wall[y, x] = false; // False = Walkable space
+                            }
+                        }
+                    }
+
+                    is_wall[pass.Entrance.Y, pass.Entrance.X] = false;
+                    is_wall[pass.Exit.Y, pass.Exit.X] = false;
+                }
+            }
+
+            return is_wall;
         }
     }
 }
