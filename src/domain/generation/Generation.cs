@@ -300,12 +300,8 @@ namespace domain.generation
                 int endX = startX + room.Size.X;
                 int endY = startY + room.Size.Y;
 
-                // Safety check to ensure we don't draw outside the map
-                if (startX < 0 || startY < 0 || endX > WIDTH || endY > HEIGHT)
-                {
-                    Console.WriteLine($"Warning: Room at {startX},{startY} is out of bounds ({WIDTH}x{HEIGHT})");
-                    continue;
-                }
+                // Bounds check
+                if (startX < 0 || startY < 0 || endX > WIDTH || endY > HEIGHT) continue;
 
                 // Draw Top and Bottom Walls (Horizontal lines)
                 // Loop X from start to end. Index array as [Y, X]
@@ -350,19 +346,6 @@ namespace domain.generation
                     {
                         if (startX >= 0 && startX < WIDTH) is_wall[y, startX] = true;       // Left
                         if (endX - 1 >= 0 && endX - 1 < WIDTH) is_wall[y, endX - 1] = true; // Right
-                    }
-
-                    // 2. Clear the Inside (Make it hollow/walkable)
-                    // Iterate from startX+1 to endX-1 and startY+1 to endY-1
-                    for (int y = startY + 1; y < endY - 1; y++)
-                    {
-                        for (int x = startX + 1; x < endX - 1; x++)
-                        {
-                            if (y >= 0 && y < HEIGHT && x >= 0 && x < WIDTH)
-                            {
-                                is_wall[y, x] = false; // False = Walkable space
-                            }
-                        }
                     }
 
                     is_wall[pass.Entrance.Y, pass.Entrance.X] = false;
