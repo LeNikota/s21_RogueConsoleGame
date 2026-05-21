@@ -52,7 +52,7 @@ namespace domain.generation
 
         static readonly Random rand = new();
 
-        public static Room[] GenerateRooms(/*Level level*/)
+        public static Room[] GenerateRooms()
         {
             var rooms = new Room[ROOM_COUNT];
 
@@ -263,6 +263,26 @@ namespace domain.generation
 
             return doors;
         }
+
+        public static void GenerateEntityPosition(Room room, Entity entity)
+        {
+            int upper_left_x = room.Position.X + 1;
+            int upper_left_y = room.Position.Y + 1;
+
+            int bottom_right_x = upper_left_x + room.Size.X - 2;
+            int bottom_right_y = upper_left_y + room.Size.Y - 2;
+
+            entity.position.x = rand.Next(upper_left_x, bottom_right_x);
+            entity.position.y = rand.Next(upper_left_y, bottom_right_y);
+        }
+
+        public static void PlacePlayer(Room[] room, Player player)
+        {
+            int selected_room = rand.Next(0, ROOM_COUNT);
+            
+            GenerateEntityPosition(room[selected_room], player);
+        }
+
 
         public static bool[,] ConvertToArray(Room[] rooms, List<List<Passage>> passages, int WIDTH, int HEIGHT)
         {

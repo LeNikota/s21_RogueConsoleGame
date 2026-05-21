@@ -21,6 +21,12 @@ namespace domain
         {
             level = new Level();
             player = new Player(8, 8);
+
+            var rooms = LevelGenerator.GenerateRooms();
+            var passages = LevelGenerator.GeneratePassages(rooms);
+            LevelGenerator.PlacePlayer(rooms, player);
+            level.is_wall = LevelGenerator.ConvertToArray(rooms, passages, Level.WIDTH, Level.HEIGHT);
+
             level.entities.Add(player);
         }
 
@@ -48,15 +54,11 @@ namespace domain
     {
         public const int WIDTH = 128; //used to resize the terminal
         public const int HEIGHT = 32; //used to resize the terminal
-        public readonly bool[,] is_wall;
+        public bool[,] is_wall;
         public List<Entity> entities;
 
         public Level()
         {
-            var rooms = LevelGenerator.GenerateRooms();
-            var passages = LevelGenerator.GeneratePassages(rooms);
-            is_wall = LevelGenerator.ConvertToArray(rooms, passages, WIDTH, HEIGHT);
-
             entities = new List<Entity>();
         }
 
