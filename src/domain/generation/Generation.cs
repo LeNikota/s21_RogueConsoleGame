@@ -28,12 +28,7 @@ namespace domain.generation
 
     class Room(Vector2i position, Vector2i size) : Object(position, size) { }
 
-    // door_placement:
-    // 0 - no doors
-    // 1 - door on left end
-    // 2 - door on right end
-    // 3 - door on both ends 
-    class Passage(Vector2i position, Vector2i size, int door_placement = 0) : Object(position, size) { }
+    class Passage(Vector2i position, Vector2i size) : Object(position, size) { }
 
     public readonly record struct Edge(int V1, int V2);
 
@@ -54,7 +49,7 @@ namespace domain.generation
         const int ROOMS_IN_COLUMN = 3;
 
         // These consts must be greater than MAX_ROOM_WIDTH and MAX_ROOM_HEIGH
-        const int REGION_WIDTH = 30;
+        const int REGION_WIDTH = 35;
         const int REGION_HEIGHT = 10;
 
         static readonly Random rand = new();
@@ -128,7 +123,7 @@ namespace domain.generation
 
         static List<Passage> GenerateHorizontalPassage(Room first_room, Room second_room)
         {
-            List<Passage> passage = [];
+            List<Passage> passages = [];
 
             int first_x = first_room.Position.X + first_room.Size.X - 1;
             int up_range_y = first_room.Position.Y;
@@ -146,61 +141,91 @@ namespace domain.generation
             int min_y = Math.Min(first_y, second_y);
             int max_y = Math.Max(first_y, second_y);
             int x_diff = Math.Abs(max_x - min_x);
+
             // Generate linear or non-linear passage
             if (first_y == second_y)
             {
                 int width = Math.Abs(second_x - first_x) + 1;
-                passage.Add(GeneratePassage(first_x, first_y, width, 3));
+                passages.Add(GeneratePassage(first_x, first_y, width, 3));
             }
             else if (x_diff == 2)
             {
                 int height = Math.Abs(second_y - first_y) + 3;
-                passage.Add(GeneratePassage(first_x, min_y, 3, height));
+                passages.Add(GeneratePassage(first_x, min_y, 3, height));
             }
             else if (x_diff >= 3 && x_diff <= 5)
             {
                 int height = Math.Abs(second_y - first_y) + 3;
-                passage.Add(GeneratePassage(first_x, min_y, 3, height));
-                passage.Add(GeneratePassage(first_x + 2, second_y, x_diff - 1, 3));
+                passages.Add(GeneratePassage(first_x, min_y, 3, height));
+                passages.Add(GeneratePassage(first_x + 2, second_y, x_diff - 1, 3));
             }
             else
             {
                 // 1. Horizontal from first room to bend
                 int bend_x = rand.Next(min_x + 2, max_x - 3);
-                passage.Add(GeneratePassage(first_x, first_y, Math.Abs(bend_x - first_x) + 1, 3));
+                passages.Add(GeneratePassage(first_x, first_y, Math.Abs(bend_x - first_x) + 1, 3));
 
                 // // 2. Vertical bend
-                passage.Add(GeneratePassage(bend_x, min_y, 3, Math.Abs(max_y - min_y) + 3));
+                passages.Add(GeneratePassage(bend_x, min_y, 3, Math.Abs(max_y - min_y) + 3));
 
                 // // 3. Horizontal from bend to second room
-                passage.Add(GeneratePassage(bend_x + 2, second_y, Math.Abs(second_x - bend_x) - 1, 3));
+                passages.Add(GeneratePassage(bend_x + 2, second_y, Math.Abs(second_x - bend_x) - 1, 3));
             }
 
-            return passage;
+            return passages;
         }
 
         static List<Passage> GenerateVerticalPassage(Room first_room, Room second_room)
         {
+            List<Passage> passages = [];
+
             int first_y = first_room.Position.Y + first_room.Size.Y - 1;
-            int left_range_x = first_room.Position.X + 1;
-            int right_range_x = first_room.Position.X + first_room.Size.X - 2;
+            int left_range_x = first_room.Position.X;
+            int right_range_x = first_room.Position.X + first_room.Size.X - 3;
             int first_x = rand.Next(left_range_x, right_range_x + 1);
 
             int second_y = second_room.Position.Y;
-            left_range_x = second_room.Position.X + 1;
-            right_range_x = second_room.Position.X + second_room.Size.X - 2;
-            int second_X = rand.Next(left_range_x, right_range_x + 1);
+            left_range_x = second_room.Position.X;
+            right_range_x = second_room.Position.X + second_room.Size.X - 3;
+            int second_x = rand.Next(left_range_x, right_range_x + 1);
 
-            // if (first_y == second_y)
-            // {
-            //     // return GeneratePassage(first_x, first_y, 1, Math.Abs(second_y - first_y) + 1);
-            // return GeneratePassage(first_y, left_range_x, 1, Math.Abs(second_y - first_y) + 1);
-            // }
-            // else
-            // {
-            //     return null;// Non-linear passage
-            // }
-            return null;
+            int min_x = Math.Min(first_x, second_x);
+            int max_x = Math.Max(first_x, second_x);
+            int min_y = Math.Min(first_y, second_y);
+            int max_y = Math.Max(first_y, second_y);
+            int y_diff = Math.Abs(max_y - min_y);
+
+            // Generate linear or non-linear passage
+            if (first_x == second_x)
+            {
+                int height = Math.Abs(second_y - first_y) + 1;
+                passages.Add(GeneratePassage(first_x, first_y, 3, height));
+            }
+            else if (y_diff == 2)
+            {
+                int width = Math.Abs(max_x - min_x) + 3;
+                passages.Add(GeneratePassage(min_x, first_y, width, 3));
+            }
+            else if (y_diff >= 3 && y_diff <= 5)
+            {
+                int width = Math.Abs(max_x - min_x) + 3;
+                passages.Add(GeneratePassage(min_x, first_y, width, 3));
+                passages.Add(GeneratePassage(second_x, first_y + 2, 3, y_diff - 1));
+            }
+            else
+            {
+                // 1. Horizontal from first room to bend
+                int bend_y = rand.Next(min_y + 2, max_y - 3);
+                passages.Add(GeneratePassage(first_x, first_y, 3, Math.Abs(bend_y - first_y) + 1));
+
+                // 2. Vertical bend
+                passages.Add(GeneratePassage(min_x, bend_y, Math.Abs(max_x - min_x) + 3, 3));
+
+                // 3. Horizontal from bend to second room
+                passages.Add(GeneratePassage(second_x, bend_y + 2, 3, Math.Abs(second_y - bend_y) - 1));
+            }
+
+            return passages;
         }
 
         public static List<List<Passage>> GeneratePassages(Room[] rooms)
@@ -219,13 +244,11 @@ namespace domain.generation
 
                     if (Math.Abs(edge.V1 - edge.V2) == 1)
                     {
-                        // Horizontal neighbors
                         passages.Add(GenerateHorizontalPassage(rooms[edge.V1], rooms[edge.V2]));
                     }
                     else
                     {
-                        // Vertical neighbors
-                        // passages.Add(GenerateVerticalPassage(rooms[edge.V1], rooms[edge.V2]));
+                        passages.Add(GenerateVerticalPassage(rooms[edge.V1], rooms[edge.V2]));
                     }
                 }
             }
