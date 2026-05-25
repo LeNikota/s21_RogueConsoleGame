@@ -1,8 +1,9 @@
+using domain.generation;
 
-
-namespace domain {
-class GameSession
+namespace domain
 {
+    class GameSession 
+    {
     public enum InputAction { NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, BACKPACK, DROP, WEAPON, FOOD, ELIXIR, SCROLL};
 
     public enum State {PLAYING, OVER};
@@ -36,19 +37,12 @@ class GameSession
     {
         level = new Level();
         player = new Player(8, 8);
-        level.entities.Add(player);
-        level.entities.Add(new Zombie(8, 24));
-        level.entities.Add(new Weapon(10, 10));
-        level.entities.Add(new Food(12, 12));
-        level.entities.Add(new Food(12, 13));
-        level.entities.Add(new Elixir(12, 14));
-        level.entities.Add(new Elixir(12, 15));
-        level.entities.Add(new Elixir(12, 16));
-        level.entities.Add(new Elixir(12, 17));
-        level.entities.Add(new Weapon(4, 4));
-        level.entities.Add(new Scroll(20, 20));
-        level.entities.Add(new Scroll(22, 22));
 
+        var rooms = LevelGenerator.GenerateRooms();
+        var passages = LevelGenerator.GeneratePassages(rooms);
+        LevelGenerator.PlacePlayer(rooms, player);
+        level.is_wall = LevelGenerator.ConvertToArray(rooms, passages, Level.WIDTH, Level.HEIGHT);
+        level.entities.Add(player);
     }
 
     public Level GetLevel()
@@ -90,8 +84,7 @@ class GameSession
         {
             if (backpackOpened) backpackOpened = false;
             else state = State.OVER;
-            return;
-            
+            return;     
         }
         else if (action == InputAction.BACKPACK)
         {
@@ -104,8 +97,6 @@ class GameSession
 
         OnEnemyTurn(); //enemy turn (getting here only if a valid player's turn is made):
         player.OnTurnEnded(); //wearing down active elixirs
-        GameLog += "Wore off the elixirs.";
-
     }
 
     private bool MovePlayer(Vector2i new_pos)

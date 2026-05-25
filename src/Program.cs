@@ -17,8 +17,6 @@ NCurses.StartColor();
 LevelRenderer.InitColors();
 
 NCurses.Keypad(screen, true); 
-//NCurses.TimeOut(10); //GetChar will wait for 10 ms (to save resources)
-//NCurses.NoDelay(screen, true);
 NCurses.NoEcho();
 
 bool shouldClose = false;
@@ -26,28 +24,24 @@ GameSession game = new();
 
 while (!shouldClose)
 {
-    //if (game.state == GameSession.State.OVER) NCurses.TimeOut(-1);
-
-    //NCurses.Clear();
+    if (game.state == GameSession.State.OVER) break;
     LevelRenderer.PrintLevel(game.GetLevel());
     UIRenderer.PrintUI(game);
     NCurses.Refresh();
     
-    shouldClose = Input(game);
+    Input(game);
 }
 NCurses.EndWin();
 
 
-static bool Input(GameSession game)
+static void Input(GameSession game)
 {
     int key = NCurses.GetChar();
-    //if (key == -1) return false; //instead of ERR
-    if (game.state == GameSession.State.OVER) return true;
     
     if (key >= '0' && key <= '9')
     {
         game.Input(GameSession.InputAction.NONE, key - 48);
-        return false;
+        return;
     }
     switch (key)
     {
@@ -81,6 +75,9 @@ static bool Input(GameSession game)
         case 't': case 'T':
             game.Input(GameSession.InputAction.DROP);
             break;
+        case 'n': case 'N':
+            game = new();
+            break;
         case CursesKey.ESC:
             game.Input(GameSession.InputAction.ESCAPE);
             break;
@@ -88,7 +85,6 @@ static bool Input(GameSession game)
             //NCurses.MoveAddString(0, 0, "Unknown input");
             break;
     }
-    return false;
 }
 
 static void ResizeTerminal()
@@ -109,3 +105,4 @@ static void ResizeTerminal()
         Thread.Sleep(100); // give terminal time to react
     }
 }
+

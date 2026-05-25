@@ -5,7 +5,7 @@ class Level
 {
     public const int WIDTH = 128; //used to resize the terminal
     public const int HEIGHT = 32; //used to resize the terminal
-    public readonly bool[,] is_wall;
+    public bool[,] is_wall; //should be readonly
     public List<Entity> entities;
 
     public Level()
