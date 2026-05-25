@@ -6,7 +6,7 @@ class Elixir(int x, int y, (string _name, Character.Stat _stat, int _power, int 
     public readonly int Power = EData._power;
     public int TurnsLeft = EData._turns;
 
-    public Elixir(int x, int y) : this(x, y, GenerateElixir()) {}
+    public Elixir(int x = 0, int y = 0) : this(x, y, GenerateElixir()) {}
 
     private static (string _name, Character.Stat _stat, int _power, int _turns) GenerateElixir()
     {

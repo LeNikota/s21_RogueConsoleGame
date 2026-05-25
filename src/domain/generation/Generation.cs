@@ -32,7 +32,7 @@ namespace domain.generation
     static class LevelGenerator
     {
         // -- Room generation --
-        const int ROOM_COUNT = 9;
+        public const int ROOM_COUNT = 9;
         const int MIN_ROOM_WIDTH = 3;
         const int MIN_ROOM_HEIGH = 3;
         const int MAX_ROOM_WIDTH = (REGION_WIDTH - GRID_OFFSET_WIDTH - 2);
@@ -262,25 +262,6 @@ namespace domain.generation
             // }
 
             return doors;
-        }
-
-        public static void GenerateEntityPosition(Room room, Entity entity)
-        {
-            int upper_left_x = room.Position.X + 1;
-            int upper_left_y = room.Position.Y + 1;
-
-            int bottom_right_x = upper_left_x + room.Size.X - 2;
-            int bottom_right_y = upper_left_y + room.Size.Y - 2;
-
-            entity.position.x = rand.Next(upper_left_x, bottom_right_x);
-            entity.position.y = rand.Next(upper_left_y, bottom_right_y);
-        }
-
-        public static void PlacePlayer(Room[] room, Player player)
-        {
-            int selected_room = rand.Next(0, ROOM_COUNT);
-            
-            GenerateEntityPosition(room[selected_room], player);
         }
 
 

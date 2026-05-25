@@ -6,7 +6,7 @@ class Food(int x, int y, (string _name, int hp) FData) : Item(x, y, 'F', FData._
 
     public readonly int Health = FData.hp;
 
-    public Food(int x, int y) : this(x, y, GenerateFood()) {}
+    public Food(int x = 0, int y = 0) : this(x, y, GenerateFood()) {}
 
     private static (string _name, int hp) GenerateFood()
     {

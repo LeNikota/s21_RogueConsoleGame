@@ -26,7 +26,7 @@ namespace domain
     };
 
     private readonly Level level;
-    private readonly Player player; //lookup not to look for it all the time
+    public Player Player { get {return level.player;}}
 
     public State state = State.PLAYING;
     public BackpackAction backpackAction = BackpackAction.NONE;
@@ -35,24 +35,12 @@ namespace domain
 
     public GameSession()
     {
-        level = new Level();
-        player = new Player(8, 8);
-
-        var rooms = LevelGenerator.GenerateRooms();
-        var passages = LevelGenerator.GeneratePassages(rooms);
-        LevelGenerator.PlacePlayer(rooms, player);
-        level.is_wall = LevelGenerator.ConvertToArray(rooms, passages, Level.WIDTH, Level.HEIGHT);
-        level.entities.Add(player);
+        level = new Level(1, new Player());
     }
 
     public Level GetLevel()
     {
         return level;
-    }
-
-    public Player GetPlayer()
-    {
-        return player;
     }
 
     public void Input(InputAction action, int? backpack_id = null)
@@ -63,7 +51,7 @@ namespace domain
         if (InputDirectionMap.TryGetValue(action, out Vector2i? dir))
         {
             backpackOpened = false;
-            Vector2i new_pos = player.position + dir;
+            Vector2i new_pos = Player.position + dir;
             
             if (!MovePlayer(new_pos)) return;
         }   
@@ -96,7 +84,7 @@ namespace domain
         else if (action == InputAction.NONE && !OnBackpackAction(backpack_id)) return;
 
         OnEnemyTurn(); //enemy turn (getting here only if a valid player's turn is made):
-        player.OnTurnEnded(); //wearing down active elixirs
+        Player.OnTurnEnded(); //wearing down active elixirs
     }
 
     private bool MovePlayer(Vector2i new_pos)
@@ -105,12 +93,12 @@ namespace domain
         Entity? entity = level.GetEntityByPos(new_pos);
         
         if (entity == null) 
-            player.position = new_pos;
+            Player.position = new_pos;
         else if (entity is Enemy enemy) 
             OnEnemyTouched(enemy);
         else if (entity is Item item)
         {
-            player.position = new_pos;
+            Player.position = new_pos;
             OnItemTouched(item);
         }
         //GameLog = player.position.ToString();
@@ -120,7 +108,7 @@ namespace domain
     private void OnEnemyTouched(Enemy enemy)
     {
         string enemy_name = enemy.GetType().Name;
-        bool isHit = Attack(player, enemy);
+        bool isHit = Attack(Player, enemy);
         if (isHit)
         {
             GameLog += $"You hit the {enemy_name}. ";
@@ -141,7 +129,7 @@ namespace domain
 
     private void OnItemTouched(Item item)
     {
-        if (player.PickItem(item))
+        if (Player.PickItem(item))
         {
             GameLog += $"You pick up a {item.name}";
             level.entities.Remove(item);
@@ -158,19 +146,19 @@ namespace domain
         {
             if (state == State.OVER) return;
             
-            if (enemy.position.DistanceTo(player.position) > enemy.hostility)
+            if (enemy.position.DistanceTo(Player.position) > enemy.hostility)
             {
                 enemy.MovePeacefully(level);
                 continue;
             }
-            List<Vector2i> path = PathFinder.FindPath(level, enemy.position, player.position);
+            List<Vector2i> path = PathFinder.FindPath(level, enemy.position, Player.position);
             if (path.Count == 0)
             {
                 //no path to player
                 enemy.MovePeacefully(level);
                 continue; 
             }
-            if (path[0] == player.position) OnEnemyTouchingPlayer(enemy);
+            if (path[0] == Player.position) OnEnemyTouchingPlayer(enemy);
             else enemy.position = path[0];
         }
     }
@@ -178,7 +166,7 @@ namespace domain
     private void OnEnemyTouchingPlayer(Enemy enemy)
     {
         string enemy_name = enemy.GetType().Name;
-        bool isHit = Attack(enemy, player);
+        bool isHit = Attack(enemy, Player);
         if (isHit)
         {
             GameLog += $"{enemy_name} hits you. ";
@@ -187,7 +175,7 @@ namespace domain
         {
             GameLog += $"{enemy_name} misses you. ";
         }
-        if (player.IsDead())
+        if (Player.IsDead())
         {
             state = State.OVER;
             GameLog += "You die. Game is over, press any key to exit.";
@@ -239,7 +227,7 @@ namespace domain
         {
             //special case of weapon unequipping
             if (backpackAction != BackpackAction.WEAPON) return false;
-            if (player.SetWeapon(id, level))
+            if (Player.SetWeapon(id, level))
             {
                 GameLog = $"Weapon is unequipped.";
                 return true;
@@ -254,22 +242,22 @@ namespace domain
         if (backpackAction == BackpackAction.NONE)
         {
             //modern-friendly context-based use
-            switch (player.GetBackpack()[id])
+            switch (Player.GetBackpack()[id])
             {
                 case Weapon w:
-                    player.SetWeapon(id, level);
+                    Player.SetWeapon(id, level);
                     GameLog = $"{w.name} is equipped.";
                     break;
                 case Food f:
-                    player.Eat(id);
+                    Player.Eat(id);
                     GameLog = $"You eat the {f.name}.";
                     break;
                 case Elixir e:
-                    player.Drink(id);
+                    Player.Drink(id);
                     GameLog = $"You drink the {e.name}.";
                     break;
                 case Scroll s:
-                    player.Read(id);
+                    Player.Read(id);
                     GameLog = $"You read the {s.name}.";
                     break;
                 default:
@@ -279,18 +267,18 @@ namespace domain
             return true;
         }
 
-        string n = player.GetBackpack()[id].name;
+        string n = Player.GetBackpack()[id].name;
         //classic action-based use
         switch(backpackAction) 
         {
             case BackpackAction.DROP:
-                Item item = player.GetBackpack()[id];
-                item.position = player.position;
+                Item item = Player.GetBackpack()[id];
+                item.position = Player.position;
                 level.entities.Add(item);
-                player.RemoveItem(item);
+                Player.RemoveItem(item);
                 break;
             case BackpackAction.WEAPON:
-                if (player.SetWeapon(id, level))
+                if (Player.SetWeapon(id, level))
                 {
                     GameLog = $"{n} is equipped.";
                 }
@@ -301,7 +289,7 @@ namespace domain
                 }
                 break;
             case BackpackAction.FOOD:
-                if (player.Eat(id))
+                if (Player.Eat(id))
                 {
                     GameLog = $"You eat the {n}.";
                 }
@@ -312,7 +300,7 @@ namespace domain
                 }
                 break;
             case BackpackAction.ELIXIR:
-                if (player.Drink(id))
+                if (Player.Drink(id))
                 {
                     GameLog = $"You drink the {n}.";
                 }
@@ -323,7 +311,7 @@ namespace domain
                 }
                 break;
             case BackpackAction.SCROLL:
-                if (player.Read(id))
+                if (Player.Read(id))
                 {
                     GameLog = $"You read the {n}.";
                 }

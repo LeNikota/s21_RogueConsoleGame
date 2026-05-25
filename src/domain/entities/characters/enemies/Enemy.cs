@@ -22,33 +22,45 @@ class Enemy(int x, int y, uint _icon, (int hp, int s, int a, int h) stats) : Cha
         return (health, strength, agility, hostility);
     }
 
+    public static Enemy GetRandomEnemy()
+    {
+        return Random.Shared.Next(0, 3) switch
+        {
+            0 => new Zombie(),
+            1 => new Vampire(),
+            2 => new Ghost(),
+            3 => new Ogre(),
+            _ => new Zombie(),
+        };
+    }
+
     public virtual void MovePeacefully(Level level)
     {
         return;
     }
 }
 
-class Zombie(int x, int y) : Enemy(x, y, 'z', StatFactor.HIGH, StatFactor.MEDIUM, StatFactor.LOW, StatFactor.MEDIUM)
+class Zombie(int x = 0, int y = 0) : Enemy(x, y, 'z', StatFactor.HIGH, StatFactor.MEDIUM, StatFactor.LOW, StatFactor.MEDIUM)
 {
     
 }
 
-class Vampire(int x, int y) : Enemy(x, y, 'v', StatFactor.HIGH, StatFactor.MEDIUM, StatFactor.HIGH, StatFactor.HIGH)
+class Vampire(int x = 0, int y = 0) : Enemy(x, y, 'v', StatFactor.HIGH, StatFactor.MEDIUM, StatFactor.HIGH, StatFactor.HIGH)
 {
     public bool wasAttacked = false; //first hit is always a miss
 }
 
-class Ghost(int x, int y) : Enemy(x, y, 'g', StatFactor.LOW, StatFactor.LOW, StatFactor.HIGH, StatFactor.LOW)
+class Ghost(int x = 0, int y = 0) : Enemy(x, y, 'g', StatFactor.LOW, StatFactor.LOW, StatFactor.HIGH, StatFactor.LOW)
 {
     
 }
 
-class Ogre(int x, int y) : Enemy(x, y, 'O', StatFactor.VERY_HIGH, StatFactor.VERY_HIGH, StatFactor.LOW, StatFactor.MEDIUM)
+class Ogre(int x = 0, int y = 0) : Enemy(x, y, 'O', StatFactor.VERY_HIGH, StatFactor.VERY_HIGH, StatFactor.LOW, StatFactor.MEDIUM)
 {
     
 }
 
-class SnakeMage(int x, int y) : Enemy(x, y, 'z', StatFactor.MEDIUM, StatFactor.MEDIUM, StatFactor.VERY_HIGH, StatFactor.HIGH)
+class SnakeMage(int x = 0, int y = 0) : Enemy(x, y, 'z', StatFactor.MEDIUM, StatFactor.MEDIUM, StatFactor.VERY_HIGH, StatFactor.HIGH)
 {
     
 }

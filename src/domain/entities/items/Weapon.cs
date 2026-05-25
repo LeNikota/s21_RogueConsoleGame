@@ -6,7 +6,7 @@ class Weapon(int x, int y, (string _name, int _strength) WData) : Item(x, y, '!'
 
     public readonly int Strength = WData._strength;
 
-    public Weapon(int x, int y) : this(x, y, GenerateWeapon()) {}
+    public Weapon(int x = 0, int y = 0) : this(x, y, GenerateWeapon()) {}
 
     private static (string _name, int _strength) GenerateWeapon()
     {

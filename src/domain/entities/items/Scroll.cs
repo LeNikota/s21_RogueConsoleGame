@@ -5,7 +5,7 @@ class Scroll(int x, int y, (string _name, Character.Stat _stat, int _power) SDat
     public readonly Character.Stat Stat = SData._stat;
     public readonly int Power = SData._power;
 
-    public Scroll(int x, int y) : this(x, y, GenerateScroll()) {}
+    public Scroll(int x = 0, int y = 0) : this(x, y, GenerateScroll()) {}
 
     private static (string _name, Character.Stat _stat, int _power) GenerateScroll()
     {
