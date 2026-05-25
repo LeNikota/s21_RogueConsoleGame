@@ -3,7 +3,7 @@ using domain;
 
 class LevelRenderer
 {
-    private static readonly int Y_OFFSET = 1; //to render a line below (the very first line is UI)
+    public const int Y_OFFSET = 1; //to render a line below (the very first line is UI)
     private static readonly uint[] WallAcsLookup =
     [
         '#',                         // isolated wall (fallback)

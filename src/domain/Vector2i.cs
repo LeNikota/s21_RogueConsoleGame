@@ -47,6 +47,11 @@ class Vector2i(int _x, int _y)
     {
         return HashCode.Combine(x, y);
     }
+
+    public override string ToString()
+    {
+        return $"({x}, {y})";
+    }
 }
 
 }
