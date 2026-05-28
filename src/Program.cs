@@ -75,9 +75,6 @@ static void Input(GameSession game)
         case 't': case 'T':
             game.Input(GameSession.InputAction.DROP);
             break;
-        case 'n': case 'N':
-            game = new();
-            break;
         case CursesKey.ESC:
             game.Input(GameSession.InputAction.ESCAPE);
             break;

@@ -45,7 +45,7 @@ class Level
         {
             entities.Add(Item.GetRandomItem(GetRandPosInRoom(available_rooms)));  
         }
-        GameLog.Log($"Welcome to floor {floor}!");
+        if (floor > 1) GameLog.Log($"Welcome to floor {floor}!");
 
         
     }

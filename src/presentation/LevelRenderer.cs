@@ -63,12 +63,16 @@ class LevelRenderer
             }
         }
 
-        //characters on top of items
-        List<Entity> characters = level.entities.FindAll(e => e is Character);
-        List<Entity> items = level.entities.FindAll(e => e is Item);
-        
-        foreach (var entity in items)
-        {  
+        //characters on top of everything else
+        List<Entity> characters = [];
+
+        foreach (var entity in level.entities)
+        {
+            if (entity is Character)
+            {
+               characters.Add(entity);
+               continue; 
+            }
             NCurses.MoveAddChar(entity.position.Y + Y_OFFSET, entity.position.X, entity.icon);
         }
         
