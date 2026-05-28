@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace domain
 {
 class Enemy(int x, int y, uint _icon, (int hp, int s, int a, int h) stats) : Character(x, y, _icon, stats.hp, stats.s, stats.a)
@@ -22,15 +24,15 @@ class Enemy(int x, int y, uint _icon, (int hp, int s, int a, int h) stats) : Cha
         return (health, strength, agility, hostility);
     }
 
-    public static Enemy GetRandomEnemy()
+    public static Enemy GetRandomEnemy(Vector2i? pos = null)
     {
         return Random.Shared.Next(0, 3) switch
         {
-            0 => new Zombie(),
-            1 => new Vampire(),
-            2 => new Ghost(),
-            3 => new Ogre(),
-            _ => new Zombie(),
+            0 => new Zombie(pos is null ? 0 : pos.X, pos is null ? 0 : pos.Y),
+            1 => new Vampire(pos is null ? 0 : pos.X, pos is null ? 0 : pos.Y),
+            2 => new Ghost(pos is null ? 0 : pos.X, pos is null ? 0 : pos.Y),
+            3 => new Ogre(pos is null ? 0 : pos.X, pos is null ? 0 : pos.Y),
+            _ => new Zombie(pos is null ? 0 : pos.X, pos is null ? 0 : pos.Y),
         };
     }
 

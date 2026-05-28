@@ -3,8 +3,8 @@ namespace domain
 {
 class Vector2i(int _x, int _y)
 {
-    public int x = _x;
-    public int y = _y;
+    public int X = _x;
+    public int Y = _y;
 
     public static readonly Vector2i ZERO = new(0, 0);
 
@@ -15,25 +15,25 @@ class Vector2i(int _x, int _y)
 
     public static Vector2i operator +(Vector2i a, Vector2i b)
     {
-        return new Vector2i(a.x + b.x, a.y + b.y);
+        return new Vector2i(a.X + b.X, a.Y + b.Y);
     }
 
     public static bool operator ==(Vector2i a, Vector2i b)
     {
-        return a.x == b.x && a.y == b.y;
+        return a.X == b.X && a.Y == b.Y;
     }
 
     public static bool operator !=(Vector2i a, Vector2i b)
     {
-        return a.x != b.x || a.y != b.y;
+        return a.X != b.X || a.Y != b.Y;
     }
 
     public double DistanceTo(Vector2i other)
     {
         //Manhattan distance (square grid based)
-        return Math.Abs(x - other.x) + Math.Abs(y - other.y);
+        return Math.Abs(X - other.X) + Math.Abs(Y - other.Y);
         //Euclidean distance:
-        //return Math.Sqrt(Math.Pow(other.x - x, 2) + Math.Pow(other.y - y, 2));
+        //return Math.Sqrt(Math.Pow(other.X - X, 2) + Math.Pow(other.Y - Y, 2));
     }
 
     public override bool Equals(object? obj)
@@ -45,12 +45,12 @@ class Vector2i(int _x, int _y)
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(x, y);
+        return HashCode.Combine(X, Y);
     }
 
     public override string ToString()
     {
-        return $"({x}, {y})";
+        return $"({X}, {Y})";
     }
 }
 

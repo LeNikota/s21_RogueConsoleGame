@@ -20,7 +20,7 @@ class UIRenderer
     public static void PrintUI(GameSession game)
     {
 
-        string log = game.GameLog ?? "";
+        string log = GameLog.GetLog();
         if (log.Length > Level.WIDTH) log = log[..Level.WIDTH]; 
         NCurses.MoveAddString(0, 0, log.PadRight(Level.WIDTH));
 

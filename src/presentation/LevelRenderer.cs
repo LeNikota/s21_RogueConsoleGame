@@ -63,26 +63,26 @@ class LevelRenderer
             }
         }
 
-        Player? player = null;
+        //characters on top of items
+        List<Entity> characters = level.entities.FindAll(e => e is Character);
+        List<Entity> items = level.entities.FindAll(e => e is Item);
         
-        foreach (var entity in level.entities)
+        foreach (var entity in items)
+        {  
+            NCurses.MoveAddChar(entity.position.Y + Y_OFFSET, entity.position.X, entity.icon);
+        }
+        
+        foreach (var entity in characters)
         {
-            if (entity is Player _player)
-            {
-                player = _player; //always on top
-                continue;
-            }
             var entity_type = entity.GetType();
             if (entity is Enemy && EnemyColor.TryGetValue(entity_type, out short value))
             {
                 NCurses.AttributeSet(NCurses.ColorPair(value));
             } 
             
-            NCurses.MoveAddChar(entity.position.y + Y_OFFSET, entity.position.x, entity.icon);
+            NCurses.MoveAddChar(entity.position.Y + Y_OFFSET, entity.position.X, entity.icon);
             NCurses.AttributeSet(NCurses.ColorPair(0));
         }
-
-        NCurses.MoveAddChar(player!.position.y + Y_OFFSET, player.position.x, player.icon);
 
 
     }

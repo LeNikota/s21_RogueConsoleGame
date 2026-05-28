@@ -12,6 +12,16 @@ namespace domain
             [Stat.MaxHealth] = maxHealth
         };
         private int _currentHealth = maxHealth;
+        public int CurrentHealth
+        {
+            get => _currentHealth;
+            protected set => _currentHealth = Math.Clamp(value, 0, MaxHealth);
+        }
+
+        public int MaxHealth => GetStat(Stat.MaxHealth);
+
+        public int Strength => GetStat(Stat.Strength);
+        public int Agility => GetStat(Stat.Agility);
 
         public int GetStat(Stat stat)
         {
@@ -28,8 +38,6 @@ namespace domain
                 if (CurrentHealth == old) CurrentHealth = _stats[stat];
                 else CurrentHealth = _currentHealth; 
             }
-                
-            
         }
 
         public void ModifyStat(Stat stat, int delta)
@@ -37,16 +45,23 @@ namespace domain
             SetStat(stat, GetStat(stat) + delta);
         }
 
-        public int CurrentHealth
+        public void Attack(Character other)
         {
-            get => _currentHealth;
-            protected set => _currentHealth = Math.Clamp(value, 0, MaxHealth);
+            string my_name = this is Player ? "You" : GetType().Name;
+            string other_name = other is Player ? "you" : other.GetType().Name;
+            
+            int roll = Random.Shared.Next(20);
+            if (roll + Agility >= 10 + other.Agility)
+            {
+                other.TakeDamage(GetDamage());
+                GameLog.Add($"{my_name} hit{(this is Player ? "" : "s")} {other_name}. ");
+            } else
+            {
+                GameLog.Add($"{my_name} miss{(this is Player ? "" : "es")} {other_name}. ");
+            }
+
+
         }
-
-        public int MaxHealth => GetStat(Stat.MaxHealth);
-
-        public int Strength => GetStat(Stat.Strength);
-        public int Agility => GetStat(Stat.Agility);
 
         public void TakeDamage(int damage)
         {

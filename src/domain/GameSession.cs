@@ -25,13 +25,12 @@ namespace domain
         {InputAction.SCROLL, BackpackAction.SCROLL}
     };
 
-    private readonly Level level;
+    private Level level;
     public Player Player { get {return level.player;}}
 
     public State state = State.PLAYING;
     public BackpackAction backpackAction = BackpackAction.NONE;
     public bool backpackOpened = false;
-    public string GameLog = "Welcome to s21_rogue!";
 
     public GameSession()
     {
@@ -47,7 +46,7 @@ namespace domain
     {
         if (state == State.OVER) return;
         
-        GameLog = "";
+        GameLog.Clear();
         if (InputDirectionMap.TryGetValue(action, out Vector2i? dir))
         {
             backpackOpened = false;
@@ -78,7 +77,7 @@ namespace domain
         {
             backpackOpened = !backpackOpened;
             backpackAction = BackpackAction.NONE;
-            if (backpackOpened) GameLog =  "Your backpack:";
+            if (backpackOpened) GameLog.Log("Your backpack:");
             return;
         }
         else if (action == InputAction.NONE && !OnBackpackAction(backpack_id)) return;
@@ -101,26 +100,21 @@ namespace domain
             Player.position = new_pos;
             OnItemTouched(item);
         }
+        else if (entity is Door door && door.IsExit)
+        {
+            OnLevelExited();
+            return false;
+        }
         //GameLog = player.position.ToString();
         return true;
     }
 
     private void OnEnemyTouched(Enemy enemy)
     {
-        string enemy_name = enemy.GetType().Name;
-        bool isHit = Attack(Player, enemy);
-        if (isHit)
-        {
-            GameLog += $"You hit the {enemy_name}. ";
-        }
-        else
-        {
-            GameLog += $"You miss {enemy_name}. ";
-        }
-        
+        Player.Attack(enemy);    
         if (enemy.IsDead())
         {
-            GameLog += $"{enemy_name} dies!";
+            GameLog.Add($"{enemy.GetType().Name} dies!");
             level.entities.Remove(enemy);
             //TO DO: GIVE PLAYER A TREASURE here
             return;
@@ -131,12 +125,12 @@ namespace domain
     {
         if (Player.PickItem(item))
         {
-            GameLog += $"You pick up a {item.name}";
+            GameLog.Add($"You pick up a {item.name}");
             level.entities.Remove(item);
         }
         else
         {
-            GameLog += $"Your backpack is full";
+            GameLog.Add($"Your backpack is full");
         }
     }
 
@@ -165,32 +159,12 @@ namespace domain
 
     private void OnEnemyTouchingPlayer(Enemy enemy)
     {
-        string enemy_name = enemy.GetType().Name;
-        bool isHit = Attack(enemy, Player);
-        if (isHit)
-        {
-            GameLog += $"{enemy_name} hits you. ";
-        } 
-        else
-        {
-            GameLog += $"{enemy_name} misses you. ";
-        }
+        enemy.Attack(Player);
         if (Player.IsDead())
         {
             state = State.OVER;
-            GameLog += "You die. Game is over, press any key to exit.";
+            GameLog.Add("You die. Game is over, press any key to exit."); 
         } 
-    }
-
-    private static bool Attack(Character c1, Character c2)
-    {
-        int roll = Random.Shared.Next(21);
-        if (roll + c1.Agility >= 10 + c2.Agility)
-        {
-            c2.TakeDamage(c1.GetDamage());
-            return true; //returns if hit
-        }
-        return false;
     }
 
     private void OnBackpackActionChanged()
@@ -198,19 +172,19 @@ namespace domain
         switch(backpackAction)
         {
             case BackpackAction.DROP:
-                GameLog = "Which item to drop?";
+                GameLog.Log("Which item to drop?");
                 break;
             case BackpackAction.WEAPON:
-                GameLog = "Which weapon to equip?";
+                GameLog.Log("Which weapon to equip?");
                 break;
             case BackpackAction.FOOD:
-                GameLog = "Which food to eat?";
+                GameLog.Log("Which food to eat?");
                 break;
             case BackpackAction.ELIXIR:
-                GameLog = "Which elixir to drink?";
+                GameLog.Log("Which elixir to drink?");
                 break;
             case BackpackAction.SCROLL:
-                GameLog = "Which scroll to read?";
+                GameLog.Log("Which scroll to read?");
                 break;
             default: break;
         }
@@ -229,12 +203,12 @@ namespace domain
             if (backpackAction != BackpackAction.WEAPON) return false;
             if (Player.SetWeapon(id, level))
             {
-                GameLog = $"Weapon is unequipped.";
+                GameLog.Add($"Weapon is unequipped.");
                 return true;
             } 
             else
             {
-                GameLog = $"No weapon to unequip or no space in the backpack.";
+                GameLog.Add($"No weapon to unequip or no space in the backpack.");
                 return false;
             }
         }
@@ -246,22 +220,22 @@ namespace domain
             {
                 case Weapon w:
                     Player.SetWeapon(id, level);
-                    GameLog = $"{w.name} is equipped.";
+                    GameLog.Add($"{w.name} is equipped.");
                     break;
                 case Food f:
                     Player.Eat(id);
-                    GameLog = $"You eat the {f.name}.";
+                    GameLog.Add($"You eat the {f.name}.");
                     break;
                 case Elixir e:
                     Player.Drink(id);
-                    GameLog = $"You drink the {e.name}.";
+                    GameLog.Add($"You drink the {e.name}.");
                     break;
                 case Scroll s:
                     Player.Read(id);
-                    GameLog = $"You read the {s.name}.";
+                    GameLog.Add($"You read the {s.name}.");
                     break;
                 default:
-                    GameLog = $"What can you do with this?";
+                    GameLog.Add($"What can you do with this?");
                     return false;
             }
             return true;
@@ -280,52 +254,57 @@ namespace domain
             case BackpackAction.WEAPON:
                 if (Player.SetWeapon(id, level))
                 {
-                    GameLog = $"{n} is equipped.";
+                    GameLog.Add($"{n} is equipped.");
                 }
                 else
                 {
-                    GameLog = $"{n} is not a weapon.";
+                    GameLog.Add($"{n} is not a weapon.");
                     return false;
                 }
                 break;
             case BackpackAction.FOOD:
                 if (Player.Eat(id))
                 {
-                    GameLog = $"You eat the {n}.";
+                    GameLog.Add($"You eat the {n}.");
                 }
                 else
                 {
-                    GameLog = $"{n} is not a food.";
+                    GameLog.Add($"{n} is not a food.");
                     return false;
                 }
                 break;
             case BackpackAction.ELIXIR:
                 if (Player.Drink(id))
                 {
-                    GameLog = $"You drink the {n}.";
+                    GameLog.Add($"You drink the {n}.");
                 }
                 else
                 {
-                    GameLog = $"{n} is not an elixir.";
+                    GameLog.Add($"{n} is not an elixir.");
                     return false;
                 }
                 break;
             case BackpackAction.SCROLL:
                 if (Player.Read(id))
                 {
-                    GameLog = $"You read the {n}.";
+                    GameLog.Add($"You read the {n}.");
                 }
                 else
                 {
-                    GameLog = $"{n} is not a scroll.";
+                    GameLog.Add($"{n} is not a scroll.");
                     return false;
                 }
                 break;
             default: break;
         }
 
-        backpackAction = BackpackAction.NONE;
+        //backpackAction = BackpackAction.NONE;
         return true;
+    }
+
+    public void OnLevelExited()
+    {
+        level = new Level(level.floor + 1, Player);
     }
 
 }

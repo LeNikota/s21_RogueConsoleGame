@@ -1,9 +1,5 @@
 namespace domain.generation
 {
-    public readonly record struct Vector2i(int X, int Y)
-    {
-        public static Vector2i operator +(Vector2i a, Vector2i b) => new(a.X + b.X, a.Y + b.Y);
-    }
     // public readonly record struct Object /*Entity*/(Vector2i Position, Vector2i Size);
     // public readonly record struct Rectangle(Vector2i Position, Vector2i Size); // As one struct replacing Object, Room and Passage
 
@@ -12,6 +8,11 @@ namespace domain.generation
         // Upper left position point of an object
         public Vector2i Position = position;
         public Vector2i Size = size;
+
+        public bool HasPoint(Vector2i point)
+        {
+            return point.X >= Position.X && point.X <= Size.X && point.Y >= Position.Y && point.Y <= Size.Y;
+        }
 
         public override string ToString()
         {
