@@ -335,6 +335,30 @@ namespace domain.generation
                 }
             }
 
+            // Removes walls at the intersection of two passages when two passages overlap
+            foreach (var passageGroup in passages)
+            {
+                foreach (var pass in passageGroup)
+                {
+                    if (pass == null) continue;
+
+                    int startX = pass.Position.X + 1;
+                    int startY = pass.Position.Y + 1;
+                    int endX = startX + pass.Size.X - 2;
+                    int endY = startY + pass.Size.Y - 2;
+
+                    if (startX < 0 || startY < 0 || endX > WIDTH || endY > HEIGHT) continue;
+
+                    for (int y = startY; y < endY; y++)
+                    {
+                        for (int x = startX; x < endX; x++)
+                        {
+                            is_wall[y, x] = false;
+                        }
+                    }
+                }
+            }
+
             return is_wall;
         }
     }
