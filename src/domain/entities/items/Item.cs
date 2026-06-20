@@ -1,6 +1,6 @@
 namespace domain
 {
-class Item(int x, int y, uint _icon, string _name) : Entity(x, y, _icon)
+class Item(int x, int y, uint _icon, string _name, Color color = Color.None) : Entity(x, y, _icon, color)
 {
     public readonly string name = _name; //to print in the inventory
 

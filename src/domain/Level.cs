@@ -21,7 +21,7 @@ namespace domain
             floor = _floor;
 
             rooms = LevelGenerator.GenerateRooms();
-            passages= LevelGenerator.GeneratePassages(rooms);
+            passages = LevelGenerator.GeneratePassages(rooms);
             is_wall = LevelGenerator.ConvertToArray(rooms, passages, WIDTH, HEIGHT);
 
             int player_room_index = Random.Shared.Next(LevelGenerator.ROOM_COUNT);
@@ -111,7 +111,7 @@ namespace domain
         {
             List<Door> doors = [];
             List<Color> colors = [Color.Red, Color.Blue, Color.Yellow];
-            int doorsCount = Random.Shared.Next(0, colors.Count);
+            int doors_count = Random.Shared.Next(0, colors.Count);
 
             // Find player room by index
             Room player_room = rooms[player_room_index];
@@ -120,49 +120,50 @@ namespace domain
             // 2. Place a door somewhere, not behind the existing doors
             // 3. Place a key, not behind the existing doors
             // 4. Repeat for part 1, try to place more doors
-            double door_placement_likelihood = 0;
-            var visited = new List<int>();
-            var queue = new Queue<Room>();
-            queue.Enqueue(player_room);
-            visited.Add(player_room.Index);
-            bool is_done = false;
-            while (queue.Count > 0)
+            for (int i = 0; i < doors_count; i++)
             {
-                double r = Random.Shared.NextDouble();
-                Room current_room = queue.Dequeue();
-
-                foreach (var current_passage in current_room.Passages)
+                double door_placement_likelihood = 0;
+                var visited = new List<int>();
+                var queue = new Queue<Room>();
+                queue.Enqueue(player_room);
+                visited.Add(player_room.Index);
+                bool is_done = false;
+                while (queue.Count > 0)
                 {
-                    if (current_passage.Door != null)
-                        continue;
+                    double r = Random.Shared.NextDouble();
+                    Room current_room = queue.Dequeue();
 
-                    if (r < door_placement_likelihood)
+                    foreach (var current_passage in current_room.Passages)
                     {
-                        Color color = colors[Random.Shared.Next(0, colors.Count)];
-                        colors.Remove(color);
-                        Vector2i pos = GetRandPosInRoom(visited);
-                        Key key = new(pos.X, pos.Y, color);
+                        if (current_passage.Door != null)
+                            continue;
 
-                        Door door = new(current_passage.Entrance.X, current_passage.Entrance.Y, key: key);
-                        doors.Add(door);
+                        if (r < door_placement_likelihood)
+                        {
+                            Color color = colors[Random.Shared.Next(0, colors.Count)];
+                            colors.Remove(color);
+                            Vector2i pos = GetRandPosInRoom(visited);
+                            Key key = new(pos.X, pos.Y, color);
 
-                        is_done = true;
-                        break;
+                            Door door = new(current_passage.Entrance.X, current_passage.Entrance.Y, key: key);
+                            doors.Add(door);
+
+                            is_done = true;
+                            break;
+                        }
+
+                        Room next_room = current_passage.Rooms[1] == current_room ? current_passage.Rooms[0] : current_passage.Rooms[1];
+                        if (visited.Contains(next_room.Index))
+                            continue;
+
+                        visited.Add(next_room.Index);
+                        queue.Enqueue(next_room);
                     }
+                    if (is_done) break;
 
-                    Room next_room = current_passage.Rooms[1] == current_room ? current_passage.Rooms[0] : current_passage.Rooms[1];
-                    if (visited.Contains(next_room.Index))
-                        continue;
-
-                    visited.Add(next_room.Index);
-                    queue.Enqueue(next_room);
+                    door_placement_likelihood += 0.2;
                 }
-                if (is_done) break;
-
-                door_placement_likelihood += 0.2;
             }
-
-
 
             return doors;
         }

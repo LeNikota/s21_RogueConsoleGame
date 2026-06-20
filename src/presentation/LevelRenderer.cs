@@ -24,17 +24,24 @@ class LevelRenderer
         CursesLineAcs.PLUS          // N+S+W+E → '┼'
     ];
 
-    enum WallDir {North = 1, South = 2, West  = 4, East  = 8}
-    private static readonly Dictionary<Type, short> EnemyColor = new()
+    enum WallDir { North = 1, South = 2, West = 4, East = 8 }
+    private static readonly Dictionary<Color, short> ColorPairMap = new()
     {
-        {typeof(Zombie), 1}, {typeof(Vampire), 2}, {typeof(Ogre), 3}
+        { Color.None, 0 },
+        { Color.Red, 1 },
+        { Color.Green, 2 },
+        { Color.Yellow, 3 },
+        { Color.Blue, 4 },
+        { Color.White, 5 }
     };
 
     public static void InitColors()
     {
-        NCurses.InitPair(1, CursesColor.GREEN, CursesColor.BLACK);
-        NCurses.InitPair(2, CursesColor.RED, CursesColor.BLACK);
+        NCurses.InitPair(1, CursesColor.RED, CursesColor.BLACK);
+        NCurses.InitPair(2, CursesColor.GREEN, CursesColor.BLACK);
         NCurses.InitPair(3, CursesColor.YELLOW, CursesColor.BLACK);
+        NCurses.InitPair(4, CursesColor.BLUE, CursesColor.BLACK);
+        NCurses.InitPair(5, CursesColor.WHITE, CursesColor.BLACK);
     }
 
 
@@ -44,7 +51,7 @@ class LevelRenderer
         int width = Level.WIDTH;
         int height = Level.HEIGHT;
         NCurses.AttributeSet(NCurses.ColorPair(0));
-        
+
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
@@ -63,31 +70,18 @@ class LevelRenderer
             }
         }
 
-        //characters on top of everything else
-        List<Entity> characters = [];
-
         foreach (var entity in level.entities)
         {
-            if (entity is Character)
+            short pair = 0;
+            if (ColorPairMap.TryGetValue(entity.Color, out short p))
             {
-               characters.Add(entity);
-               continue; 
+                pair = p;
             }
+
+            NCurses.AttributeSet(NCurses.ColorPair(pair));
             NCurses.MoveAddChar(entity.position.Y + Y_OFFSET, entity.position.X, entity.icon);
         }
-        
-        foreach (var entity in characters)
-        {
-            var entity_type = entity.GetType();
-            if (entity is Enemy && EnemyColor.TryGetValue(entity_type, out short value))
-            {
-                NCurses.AttributeSet(NCurses.ColorPair(value));
-            } 
-            
-            NCurses.MoveAddChar(entity.position.Y + Y_OFFSET, entity.position.X, entity.icon);
-            NCurses.AttributeSet(NCurses.ColorPair(0));
-        }
 
-
+        NCurses.AttributeSet(NCurses.ColorPair(0));
     }
 }

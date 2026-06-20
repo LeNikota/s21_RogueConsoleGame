@@ -2,13 +2,13 @@ using System.Numerics;
 
 namespace domain
 {
-class Enemy(int x, int y, uint _icon, (int hp, int s, int a, int h) stats) : Character(x, y, _icon, stats.hp, stats.s, stats.a)
+class Enemy(int x, int y, uint _icon, Color color, (int hp, int s, int a, int h) stats) : Character(x, y, _icon, color, stats.hp, stats.s, stats.a)
 {
     public enum StatFactor {LOW, MEDIUM, HIGH, VERY_HIGH};
     public int hostility = stats.h;
 
-    public Enemy(int x, int y, uint _icon, StatFactor hp_f, StatFactor st_f, StatFactor ag_f, StatFactor host_f) : 
-        this(x, y, _icon, GenerateStats(hp_f, st_f, ag_f, host_f)){}
+    public Enemy(int x, int y, uint _icon, Color color, StatFactor hp_f, StatFactor st_f, StatFactor ag_f, StatFactor host_f) : 
+        this(x, y, _icon, color, GenerateStats(hp_f, st_f, ag_f, host_f)){}
 
     private static (int hp, int s, int a, int h) GenerateStats(StatFactor hp_f, StatFactor st_f, StatFactor ag_f, StatFactor host_f)
     {
@@ -42,27 +42,27 @@ class Enemy(int x, int y, uint _icon, (int hp, int s, int a, int h) stats) : Cha
     }
 }
 
-class Zombie(int x = 0, int y = 0) : Enemy(x, y, 'z', StatFactor.HIGH, StatFactor.MEDIUM, StatFactor.LOW, StatFactor.MEDIUM)
+class Zombie(int x = 0, int y = 0) : Enemy(x, y, 'z', Color.Green, StatFactor.HIGH, StatFactor.MEDIUM, StatFactor.LOW, StatFactor.MEDIUM)
 {
     
 }
 
-class Vampire(int x = 0, int y = 0) : Enemy(x, y, 'v', StatFactor.HIGH, StatFactor.MEDIUM, StatFactor.HIGH, StatFactor.HIGH)
+class Vampire(int x = 0, int y = 0) : Enemy(x, y, 'v', Color.Red, StatFactor.HIGH, StatFactor.MEDIUM, StatFactor.HIGH, StatFactor.HIGH)
 {
     public bool wasAttacked = false; //first hit is always a miss
 }
 
-class Ghost(int x = 0, int y = 0) : Enemy(x, y, 'g', StatFactor.LOW, StatFactor.LOW, StatFactor.HIGH, StatFactor.LOW)
+class Ghost(int x = 0, int y = 0) : Enemy(x, y, 'g', Color.White, StatFactor.LOW, StatFactor.LOW, StatFactor.HIGH, StatFactor.LOW)
 {
     
 }
 
-class Ogre(int x = 0, int y = 0) : Enemy(x, y, 'O', StatFactor.VERY_HIGH, StatFactor.VERY_HIGH, StatFactor.LOW, StatFactor.MEDIUM)
+class Ogre(int x = 0, int y = 0) : Enemy(x, y, 'O', Color.Yellow, StatFactor.VERY_HIGH, StatFactor.VERY_HIGH, StatFactor.LOW, StatFactor.MEDIUM)
 {
     
 }
 
-class SnakeMage(int x = 0, int y = 0) : Enemy(x, y, 'z', StatFactor.MEDIUM, StatFactor.MEDIUM, StatFactor.VERY_HIGH, StatFactor.HIGH)
+class SnakeMage(int x = 0, int y = 0) : Enemy(x, y, 'z', Color.White, StatFactor.MEDIUM, StatFactor.MEDIUM, StatFactor.VERY_HIGH, StatFactor.HIGH)
 {
     
 }
