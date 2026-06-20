@@ -1,11 +1,11 @@
 namespace domain
 {
-    class GameSession 
+    class GameSession
     {
-    public enum InputAction { NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, BACKPACK, DROP, WEAPON, FOOD, ELIXIR, SCROLL, RESTART};
+        public enum InputAction { NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, BACKPACK, DROP, WEAPON, FOOD, ELIXIR, SCROLL, RESTART };
 
-    public enum State {PLAYING, OVER, EXITING};
-    public readonly Dictionary<InputAction, Vector2i> InputDirectionMap = new()
+        public enum State { PLAYING, OVER, EXITING };
+        public readonly Dictionary<InputAction, Vector2i> InputDirectionMap = new()
     {
         {InputAction.UP, Vector2i.UP},
         {InputAction.DOWN, Vector2i.DOWN},
@@ -13,7 +13,7 @@ namespace domain
         {InputAction.RIGHT, Vector2i.RIGHT}
     };
 
-    public readonly Dictionary<InputAction, Backpack.Action> InputBackpackMap = new()
+        public readonly Dictionary<InputAction, Backpack.Action> InputBackpackMap = new()
     {
         {InputAction.DROP, Backpack.Action.DROP},
         {InputAction.WEAPON, Backpack.Action.WEAPON},
@@ -22,171 +22,176 @@ namespace domain
         {InputAction.SCROLL, Backpack.Action.SCROLL}
     };
 
-    private Level level;
-    public Player Player { get {return level.player;}}
+        private Level level;
+        public Player Player { get { return level.player; } }
 
-    public State state = State.PLAYING;
+        public State state = State.PLAYING;
 
-    public GameSession()
-    {
-        level = new Level(1, new Player());
-    }
-
-    public Level GetLevel()
-    {
-        return level;
-    }
-
-    public void Input(InputAction action, int? backpack_id = null)
-    {
-        switch(state)
-        {
-            case State.PLAYING:
-                GameLog.Clear();
-                if (!OnGameRunningInput(action, backpack_id)) return;
-                OnEnemyTurn(); //getting here only if a valid player's turn is made:
-                Player.OnTurnEnded(); //wearing down active elixirs
-                break;
-            case State.OVER:
-                OnGameOverInput(action);
-                break;
-            //on exiting ignore
-        }      
-    }
-
-    private bool OnGameRunningInput(InputAction action, int? backpack_id = null)
-    {
-        Backpack backpack = Player.GetBackpack();
-        if (InputDirectionMap.TryGetValue(action, out Vector2i? dir))
-        {
-            backpack.Opened = false;
-            Vector2i new_pos = Player.position + dir;
-            
-            return MovePlayer(new_pos);
-        }   
-        else if (InputBackpackMap.TryGetValue(action, out Backpack.Action a))
-        {
-            if (backpack.Opened && a == backpack.action)
-            {
-                backpack.Opened = false;
-                backpack.action = Backpack.Action.NONE;
-                return false;
-            }
-            backpack.SetAction(a);
-            backpack.Opened = true;
-            return false;
-        }
-        else if (action == InputAction.ESCAPE)
-        {
-            if (backpack.Opened) backpack.Opened = false;
-            else state = State.OVER;
-            return false;     
-        }
-        else if (action == InputAction.BACKPACK)
-        {
-            backpack.Opened = !backpack.Opened;
-            backpack.action = Backpack.Action.NONE;
-            if (backpack.Opened) GameLog.Log("Your backpack:");
-            return true;
-        }
-        else if (action == InputAction.NONE) 
-            return backpack.OnAction(backpack_id, Player, level);
-        
-        return false;
-    }
-
-    private void OnGameOverInput(InputAction action)
-    {
-        if (action == InputAction.ESCAPE) state = State.EXITING;
-        else if (action == InputAction.RESTART)
+        public GameSession()
         {
             level = new Level(1, new Player());
         }
-    }
 
-    private bool MovePlayer(Vector2i new_pos)
-    {
-        if (!level.IsPositionValid(new_pos)) return false;
-        Entity? entity = level.GetEntityByPos(new_pos);
-        
-        if (entity == null) 
-            Player.position = new_pos;
-        else if (entity is Enemy enemy) 
-            OnEnemyTouched(enemy);
-        else if (entity is Item item)
+        public Level GetLevel()
         {
-            Player.position = new_pos;
-            OnItemTouched(item);
+            return level;
         }
-        else if (entity is Door door && door.IsExit)
+
+        public void Input(InputAction action, int? backpack_id = null)
         {
-            OnLevelExited();
+            switch (state)
+            {
+                case State.PLAYING:
+                    GameLog.Clear();
+                    if (!OnGameRunningInput(action, backpack_id)) return;
+                    OnEnemyTurn(); //getting here only if a valid player's turn is made:
+                    Player.OnTurnEnded(); //wearing down active elixirs
+                    break;
+                case State.OVER:
+                    OnGameOverInput(action);
+                    break;
+                    //on exiting ignore
+            }
+        }
+
+        private bool OnGameRunningInput(InputAction action, int? backpack_id = null)
+        {
+            Backpack backpack = Player.GetBackpack();
+            if (InputDirectionMap.TryGetValue(action, out Vector2i? dir))
+            {
+                backpack.Opened = false;
+                Vector2i new_pos = Player.position + dir;
+
+                return MovePlayer(new_pos);
+            }
+            else if (InputBackpackMap.TryGetValue(action, out Backpack.Action a))
+            {
+                if (backpack.Opened && a == backpack.action)
+                {
+                    backpack.Opened = false;
+                    backpack.action = Backpack.Action.NONE;
+                    return false;
+                }
+                backpack.SetAction(a);
+                backpack.Opened = true;
+                return false;
+            }
+            else if (action == InputAction.ESCAPE)
+            {
+                if (backpack.Opened) backpack.Opened = false;
+                else state = State.OVER;
+                return false;
+            }
+            else if (action == InputAction.BACKPACK)
+            {
+                backpack.Opened = !backpack.Opened;
+                backpack.action = Backpack.Action.NONE;
+                if (backpack.Opened) GameLog.Log("Your backpack:");
+                return true;
+            }
+            else if (action == InputAction.NONE)
+                return backpack.OnAction(backpack_id, Player, level);
+
             return false;
         }
-        //GameLog = player.position.ToString();
-        return true;
-    }
 
-    private void OnEnemyTouched(Enemy enemy)
-    {
-        Player.Attack(enemy);    
-        if (enemy.IsDead())
+        private void OnGameOverInput(InputAction action)
         {
-            int treasure = Random.Shared.Next(100, 1000);
-            GameLog.Add($"{enemy.GetType().Name} dies! You get treasure worth {treasure}");
-            level.entities.Remove(enemy);
-            Player.GetBackpack().AddTreasure(treasure);
-        }
-    }
-
-    private void OnItemTouched(Item item)
-    {
-        if (Player.PickItem(item))
-        {
-            GameLog.Add($"You pick up a {item.name}");
-            level.entities.Remove(item);
-        }
-        else
-        {
-            GameLog.Add($"Your backpack is full");
-        }
-    }
-
-    private void OnEnemyTurn()
-    {
-        foreach(Enemy enemy in level.entities.FindAll(e => e is Enemy).Cast<Enemy>())
-        {
-            if (enemy.position.DistanceTo(Player.position) > enemy.hostility)
+            if (action == InputAction.ESCAPE) state = State.EXITING;
+            else if (action == InputAction.RESTART)
             {
-                enemy.MovePeacefully(level);
-                continue;
+                level = new Level(1, new Player());
             }
-            List<Vector2i> path = PathFinder.FindPath(level, enemy.position, Player.position);
-            if (path.Count == 0)
+        }
+
+        private bool MovePlayer(Vector2i new_pos)
+        {
+            if (!level.IsPositionValid(new_pos)) return false;
+            Entity? entity = level.GetEntityByPos(new_pos);
+
+            if (entity == null)
+                Player.position = new_pos;
+            else if (entity is Enemy enemy)
+                OnEnemyTouched(enemy);
+            else if (entity is Item item)
             {
-                //no path to player
-                enemy.MovePeacefully(level);
-                continue; 
+                Player.position = new_pos;
+                OnItemTouched(item);
             }
-            if (path[0] == Player.position)
+            else if (entity is Door door)
             {
-                enemy.Attack(Player);
-                if (Player.IsDead())
+                if (door.IsExit)
                 {
-                    state = State.OVER;
-                    GameLog.Add("You die. Press R to restart or ESC to exit"); 
-                    return;
-                } 
+                    OnLevelExited();
+                    return false;
+                }
+                if (door.Open(Player, level))
+                    level.entities.Remove(door);
             }
-            else enemy.position = path[0];
+            //GameLog = player.position.ToString();
+            return true;
         }
-    }
 
-    public void OnLevelExited()
-    {
-        level = new Level(level.floor + 1, Player);
-    }
+        private void OnEnemyTouched(Enemy enemy)
+        {
+            Player.Attack(enemy);
+            if (enemy.IsDead())
+            {
+                int treasure = Random.Shared.Next(100, 1000);
+                GameLog.Add($"{enemy.GetType().Name} dies! You get treasure worth {treasure}");
+                level.entities.Remove(enemy);
+                Player.GetBackpack().AddTreasure(treasure);
+            }
+        }
 
-}
+        private void OnItemTouched(Item item)
+        {
+            if (Player.PickItem(item))
+            {
+                GameLog.Add($"You pick up a {item.name}");
+                level.entities.Remove(item);
+            }
+            else
+            {
+                GameLog.Add($"Your backpack is full");
+            }
+        }
+
+        private void OnEnemyTurn()
+        {
+            foreach (Enemy enemy in level.entities.FindAll(e => e is Enemy).Cast<Enemy>())
+            {
+                if (enemy.position.DistanceTo(Player.position) > enemy.hostility)
+                {
+                    enemy.MovePeacefully(level);
+                    continue;
+                }
+                List<Vector2i> path = PathFinder.FindPath(level, enemy.position, Player.position);
+                if (path.Count == 0)
+                {
+                    //no path to player
+                    enemy.MovePeacefully(level);
+                    continue;
+                }
+                if (path[0] == Player.position)
+                {
+                    enemy.Attack(Player);
+                    if (Player.IsDead())
+                    {
+                        state = State.OVER;
+                        GameLog.Add("You die. Press R to restart or ESC to exit");
+                        return;
+                    }
+                }
+                else enemy.position = path[0];
+            }
+        }
+
+        public void OnLevelExited()
+        {
+            level = new Level(level.floor + 1, Player);
+        }
+
+    }
 
 } //domain

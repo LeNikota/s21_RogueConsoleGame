@@ -4,5 +4,21 @@ namespace domain
     {
         public bool IsExit { get; } = exit;
         public Key? Key { get; } = key;
+
+        public bool Open(Player player, Level level)
+        {
+            bool can_open = player.GetBackpack().List.Any(item => item is Key k && k == Key);
+
+            if (can_open)
+            {
+                GameLog.Add($"You open the {Key} door.");
+            }
+            else
+            {
+                GameLog.Add($"The door is locked. You need a {Key} key.");
+            }
+
+            return can_open;
+        }
     }
 }
