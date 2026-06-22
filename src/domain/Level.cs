@@ -110,7 +110,7 @@ namespace domain
         List<Door> GenerateDoorsAndKeys(int player_room_index)
         {
             List<Door> doors = [];
-            List<Color> colors = [Color.Red, Color.Blue, Color.Yellow];
+            List<Color> colors = [/* Color.Red ,*/ Color.Blue, Color.Yellow];
             int doors_count = Random.Shared.Next(0, colors.Count);
 
             // Find player room by index
@@ -142,11 +142,14 @@ namespace domain
                         {
                             Color color = colors[Random.Shared.Next(0, colors.Count)];
                             colors.Remove(color);
+                            visited.Remove(current_room.Index);
                             Vector2i pos = GetRandPosInRoom(visited);
                             Key key = new(pos.X, pos.Y, color);
 
                             Door door = new(current_passage.Entrance.X, current_passage.Entrance.Y, key: key);
                             doors.Add(door);
+
+                            current_passage.Door = door;
 
                             is_done = true;
                             break;

@@ -11,11 +11,11 @@ namespace domain
 
             if (can_open)
             {
-                GameLog.Add($"You open the {Key} door.");
+                GameLog.Add($"You open the {Key?.Color} door.");
             }
             else
             {
-                GameLog.Add($"The door is locked. You need a {Key} key.");
+                GameLog.Add($"The door is locked. You need a {Key}.");
             }
 
             return can_open;

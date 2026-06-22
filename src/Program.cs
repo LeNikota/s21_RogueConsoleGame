@@ -22,6 +22,9 @@ NCurses.NoEcho();
 bool shouldClose = false;
 GameSession game = new();
 
+//! DELETE: THIS EXISTS FOR TESTING
+bool is_generate_new_level = false;
+
 while (!shouldClose)
 {
     if (game.state == GameSession.State.OVER) break;
@@ -30,11 +33,19 @@ while (!shouldClose)
     NCurses.Refresh();
     
     Input(game);
+
+    //! DELETE: THIS EXISTS FOR TESTING
+    if (is_generate_new_level == true)
+    {
+        game = new();
+        is_generate_new_level = false;
+    }
+
 }
 NCurses.EndWin();
 
 
-static void Input(GameSession game)
+/* static */ void Input(GameSession game)
 {
     int key = NCurses.GetChar();
     
@@ -78,6 +89,12 @@ static void Input(GameSession game)
         case CursesKey.ESC:
             game.Input(GameSession.InputAction.ESCAPE);
             break;
+
+        //! DELETE: THIS EXISTS FOR TESTING
+        case 'n': case 'N':
+            is_generate_new_level = true;
+            break;
+
         default:
             //NCurses.MoveAddString(0, 0, "Unknown input");
             break;

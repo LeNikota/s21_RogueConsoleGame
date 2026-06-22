@@ -1,4 +1,10 @@
 namespace domain
 {
-    class Key(int x, int y, Color color) : Item(x, y, '*', $"Key ({color})", color);
+    class Key(int x, int y, Color color) : Item(x, y, '*', $"Key ({color})", color)
+    {
+        public override string ToString()
+        {
+            return $"{color} key";
+        }
+    }
 }
