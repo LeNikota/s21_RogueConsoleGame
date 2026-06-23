@@ -48,7 +48,12 @@ namespace domain
 
             List<Door> doors = GenerateDoorsAndKeys(player_room_index);
             entities.AddRange(doors);
-            doors.ForEach(door => entities.Add(door?.Key));
+            
+            doors.ForEach(door =>
+            {
+                if(door.Key != null)
+                    entities.Add(door.Key);
+            });
 
             if (floor > 1) GameLog.Log($"Welcome to floor {floor}!");
         }
@@ -111,9 +116,8 @@ namespace domain
         List<Door> GenerateDoorsAndKeys(int player_room_index)
         {
             List<Door> doors = [];
-            List<Color> colors = [/* Color.Red ,*/ Color.Blue, Color.Yellow];
-            // int doorCount = Random.Shared.Next(0, colors.Count + 1);
-            int doorCount = 2;
+            List<Color> colors = [Color.Blue, Color.Yellow];
+            int doorCount = Random.Shared.Next(0, colors.Count + 1);
 
             // 1. From player room start searching for a passage to block with a door
             // 2. Place a door somewhere, not behind the existing doors
@@ -121,6 +125,7 @@ namespace domain
             // 4. Repeat for part 1, try to place more doors
             for (int i = 0; i < doorCount; i++)
             {
+                //Place a door far away from the player room
                 var passagesByDistance = GetPassagesByDistance(rooms[player_room_index]);
                 int maxDistance = passagesByDistance.Keys.Max();
                 var availablePassages = passagesByDistance
@@ -133,13 +138,18 @@ namespace domain
                 doors.Add(door);
                 randomPassage.Door = door;
 
+                // Place a key, not behind the existing doors
                 var roomsByDistance = GetRoomsByDistance(rooms[player_room_index]);
-                maxDistance = roomsByDistance.Keys.Max();
+                // Not near the player
+                roomsByDistance.Remove(0);
+                roomsByDistance.Remove(1);
                 var availableRooms = roomsByDistance
-                    .Where(kvp => kvp.Key == maxDistance)
                     .SelectMany(kvp => kvp.Value)
                     .ToList();
 
+                // Not near the placed door
+                availableRooms.Remove(randomPassage.Rooms[0]);
+                availableRooms.Remove(randomPassage.Rooms[1]);
                 Room randomRoom = availableRooms[Random.Shared.Next(availableRooms.Count)];
 
                 Color color = colors[Random.Shared.Next(0, colors.Count)];
