@@ -3,7 +3,16 @@ namespace domain
     class Door(int x, int y, bool exit = false, Key? key = null) : Entity(x, y, '#', key?.Color ?? Color.None)
     {
         public bool IsExit { get; } = exit;
-        public Key? Key { get; } = key;
+        private Key? _key;
+        public Key? Key
+        {
+            get => _key;
+            set
+            {
+                _key = value;
+                Color = value?.Color ?? Color.None;
+            }
+        }
 
         public bool Open(Player player, Level level)
         {

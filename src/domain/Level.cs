@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Numerics;
 using domain.generation;
 namespace domain
@@ -47,7 +48,7 @@ namespace domain
 
             List<Door> doors = GenerateDoorsAndKeys(player_room_index);
             entities.AddRange(doors);
-            doors.ForEach(door => entities.Add(door.Key));
+            doors.ForEach(door => entities.Add(door?.Key));
 
             if (floor > 1) GameLog.Log($"Welcome to floor {floor}!");
         }
@@ -111,64 +112,134 @@ namespace domain
         {
             List<Door> doors = [];
             List<Color> colors = [/* Color.Red ,*/ Color.Blue, Color.Yellow];
-            int doors_count = Random.Shared.Next(0, colors.Count);
-
-            // Find player room by index
-            Room player_room = rooms[player_room_index];
+            // int doorCount = Random.Shared.Next(0, colors.Count + 1);
+            int doorCount = 2;
 
             // 1. From player room start searching for a passage to block with a door
             // 2. Place a door somewhere, not behind the existing doors
             // 3. Place a key, not behind the existing doors
             // 4. Repeat for part 1, try to place more doors
-            for (int i = 0; i < doors_count; i++)
+            for (int i = 0; i < doorCount; i++)
             {
-                double door_placement_likelihood = 0;
-                var visited = new List<int>();
-                var queue = new Queue<Room>();
-                queue.Enqueue(player_room);
-                visited.Add(player_room.Index);
-                bool is_done = false;
-                while (queue.Count > 0)
+                var passagesByDistance = GetPassagesByDistance(rooms[player_room_index]);
+                int maxDistance = passagesByDistance.Keys.Max();
+                var availablePassages = passagesByDistance
+                    .Where(kvp => kvp.Key == maxDistance)
+                    .SelectMany(kvp => kvp.Value)
+                    .ToList();
+                Passage randomPassage = availablePassages[Random.Shared.Next(availablePassages.Count)];
+
+                Door door = new(randomPassage.Entrance.X, randomPassage.Entrance.Y);
+                doors.Add(door);
+                randomPassage.Door = door;
+
+                var roomsByDistance = GetRoomsByDistance(rooms[player_room_index]);
+                maxDistance = roomsByDistance.Keys.Max();
+                var availableRooms = roomsByDistance
+                    .Where(kvp => kvp.Key == maxDistance)
+                    .SelectMany(kvp => kvp.Value)
+                    .ToList();
+
+                Room randomRoom = availableRooms[Random.Shared.Next(availableRooms.Count)];
+
+                Color color = colors[Random.Shared.Next(0, colors.Count)];
+                colors.Remove(color);
+                Vector2i pos = GetRandPosInRoom([randomRoom.Index]);
+                Key key = new(pos.X, pos.Y, color);
+                door.Key = key;
+            }
+
+
+            return doors;
+        }
+
+        public Dictionary<int, List<Passage>> GetPassagesByDistance(Room startRoom)
+        {
+            var result = new Dictionary<int, List<Passage>>();
+            var visitedRooms = new HashSet<Room>();
+            var queue = new Queue<(Room Room, int Distance)>();
+
+            queue.Enqueue((startRoom, 0));
+            visitedRooms.Add(startRoom);
+
+            while (queue.Count > 0)
+            {
+                var (currentRoom, distance) = queue.Dequeue();
+
+                if (!result.ContainsKey(distance))
                 {
-                    double r = Random.Shared.NextDouble();
-                    Room current_room = queue.Dequeue();
+                    result[distance] = [];
+                }
 
-                    foreach (var current_passage in current_room.Passages)
+                // Add all passages connected to this room to the current distance bucket
+                foreach (var passage in currentRoom.Passages)
+                {
+                    if (!result[distance].Contains(passage) && passage.Door == null)
                     {
-                        if (current_passage.Door != null)
-                            continue;
-
-                        if (r < door_placement_likelihood)
-                        {
-                            Color color = colors[Random.Shared.Next(0, colors.Count)];
-                            colors.Remove(color);
-                            visited.Remove(current_room.Index);
-                            Vector2i pos = GetRandPosInRoom(visited);
-                            Key key = new(pos.X, pos.Y, color);
-
-                            Door door = new(current_passage.Entrance.X, current_passage.Entrance.Y, key: key);
-                            doors.Add(door);
-
-                            current_passage.Door = door;
-
-                            is_done = true;
-                            break;
-                        }
-
-                        Room next_room = current_passage.Rooms[1] == current_room ? current_passage.Rooms[0] : current_passage.Rooms[1];
-                        if (visited.Contains(next_room.Index))
-                            continue;
-
-                        visited.Add(next_room.Index);
-                        queue.Enqueue(next_room);
+                        result[distance].Add(passage);
                     }
-                    if (is_done) break;
+                }
 
-                    door_placement_likelihood += 0.2;
+                // Explore neighbors
+                foreach (var passage in currentRoom.Passages)
+                {
+                    if (passage.Door != null)
+                        continue;
+
+                    // Determine the other room connected by this passage
+                    Room nextRoom = passage.Rooms[0] == currentRoom ? passage.Rooms[1] : passage.Rooms[0];
+
+                    if (visitedRooms.Contains(nextRoom))
+                        continue;
+
+                    visitedRooms.Add(nextRoom);
+                    queue.Enqueue((nextRoom, distance + 1));
                 }
             }
 
-            return doors;
+            return result;
+        }
+
+        public Dictionary<int, List<Room>> GetRoomsByDistance(Room startRoom)
+        {
+            var result = new Dictionary<int, List<Room>>();
+            var visited = new HashSet<int>();
+            var queue = new Queue<(Room Room, int Distance)>();
+
+            queue.Enqueue((startRoom, 0));
+            visited.Add(startRoom.Index);
+
+            result[0] = [startRoom];
+
+            while (queue.Count > 0)
+            {
+                var (currentRoom, distance) = queue.Dequeue();
+                int nextDistance = distance + 1;
+
+                // Explore all passages connected to the current room
+                foreach (var passage in currentRoom.Passages)
+                {
+                    if (passage.Door != null)
+                        continue;
+
+                    // Identify the neighbor room
+                    Room neighbor = passage.Rooms[0] == currentRoom ? passage.Rooms[1] : passage.Rooms[0];
+
+                    if (!visited.Contains(neighbor.Index))
+                    {
+                        visited.Add(neighbor.Index);
+                        queue.Enqueue((neighbor, nextDistance));
+
+                        // Add to result dictionary
+                        if (!result.ContainsKey(nextDistance))
+                            result[nextDistance] = [];
+
+                        result[nextDistance].Add(neighbor);
+                    }
+                }
+            }
+
+            return result;
         }
     }
 }
