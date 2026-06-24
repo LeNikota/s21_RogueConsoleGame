@@ -57,12 +57,12 @@ class Ghost(int x = 0, int y = 0) : Enemy(x, y, 'g', StatFactor.LOW, StatFactor.
     
 }
 
-class Ogre(int x = 0, int y = 0) : Enemy(x, y, 'O', StatFactor.VERY_HIGH, StatFactor.VERY_HIGH, StatFactor.LOW, StatFactor.MEDIUM, Color.Yellow)
+class Ogre(int x = 0, int y = 0) : Enemy(x, y, 'o', StatFactor.VERY_HIGH, StatFactor.VERY_HIGH, StatFactor.LOW, StatFactor.MEDIUM, Color.Yellow)
 {
     
 }
 
-class SnakeMage(int x = 0, int y = 0) : Enemy(x, y, 'z', StatFactor.MEDIUM, StatFactor.MEDIUM, StatFactor.VERY_HIGH, StatFactor.HIGH, Color.White)
+class SnakeMage(int x = 0, int y = 0) : Enemy(x, y, 's', StatFactor.MEDIUM, StatFactor.MEDIUM, StatFactor.VERY_HIGH, StatFactor.HIGH, Color.White)
 {
     
 }

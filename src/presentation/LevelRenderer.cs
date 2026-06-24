@@ -28,20 +28,26 @@ class LevelRenderer
     private static readonly Dictionary<Color, short> ColorPairMap = new()
     {
         { Color.None, 0 },
-        { Color.Red, 1 },
-        { Color.Green, 2 },
-        { Color.Yellow, 3 },
-        { Color.Blue, 4 },
-        { Color.White, 5 }
+        { Color.White, 1 },
+        { Color.Red, 2 },
+        { Color.Green, 3 },
+        { Color.Yellow, 4 },
+        { Color.Blue, 5 },
+        { Color.Cyan, 6 },
+        { Color.Magenta, 7 },
+        { Color.Black, 8 }
     };
 
     public static void InitColors()
     {
-        NCurses.InitPair(1, CursesColor.RED, CursesColor.BLACK);
-        NCurses.InitPair(2, CursesColor.GREEN, CursesColor.BLACK);
-        NCurses.InitPair(3, CursesColor.YELLOW, CursesColor.BLACK);
-        NCurses.InitPair(4, CursesColor.BLUE, CursesColor.BLACK);
-        NCurses.InitPair(5, CursesColor.WHITE, CursesColor.BLACK);
+        NCurses.InitPair(1, CursesColor.WHITE, CursesColor.BLACK);
+        NCurses.InitPair(2, CursesColor.RED, CursesColor.BLACK);
+        NCurses.InitPair(3, CursesColor.GREEN, CursesColor.BLACK);
+        NCurses.InitPair(4, CursesColor.YELLOW, CursesColor.BLACK);
+        NCurses.InitPair(5, CursesColor.BLUE, CursesColor.BLACK);
+        NCurses.InitPair(6, CursesColor.CYAN, CursesColor.BLACK);
+        NCurses.InitPair(7, CursesColor.MAGENTA, CursesColor.BLACK);
+        NCurses.InitPair(8, CursesColor.BLACK, CursesColor.BLACK);
     }
 
 

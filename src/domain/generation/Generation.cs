@@ -85,8 +85,8 @@ namespace domain.generation
 
             // TODO: place into separate functions
             // Entity and items generations
-            enemy_num += floor;
-            item_num += floor;
+            // enemy_num += floor;
+            // item_num += floor;
 
             List<int> available_rooms = [.. Enumerable.Range(0, ROOM_COUNT).Where(r => r != player_room_index)];
             entities.Add(new Door(0, 0, true) { position = GetRandPosInRoom(available_rooms) });
@@ -441,7 +441,7 @@ namespace domain.generation
         static List<Door> GenerateDoorsAndKeys(Room player_room)
         {
             List<Door> doors = [];
-            List<Color> colors = [Color.Blue, Color.Yellow];
+            List<Color> colors = [Color.Blue, Color.Magenta];
             int doorCount = Random.Shared.Next(0, colors.Count + 1);
 
             // 1. From player room start searching for a passage to block with a door

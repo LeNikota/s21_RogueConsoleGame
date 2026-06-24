@@ -1,6 +1,6 @@
 namespace domain
 {
-    public enum Color { None, Red, Blue, Yellow, Green, White }
+    public enum Color { None, White, Red, Green, Blue, Yellow, Cyan, Magenta, Black }
 
     class Entity(int x, int y, uint _icon, Color color = Color.None)
     {

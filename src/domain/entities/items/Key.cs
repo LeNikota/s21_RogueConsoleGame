@@ -1,6 +1,6 @@
 namespace domain
 {
-    class Key(int x, int y, Color color = Color.None) : Item(x, y, '*', $"Key ({color})")
+    class Key(int x, int y, Color color = Color.None) : Item(x, y, '*', $"Key ({color})", color)
     {
         public override string ToString()
         {
