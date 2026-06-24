@@ -1,7 +1,7 @@
 namespace domain
 {
 
-    class Character(int x, int y, uint _icon, Color color, int maxHealth, int strength, int agility)  : Entity(x, y, _icon, color)
+    class Character(int x, int y, uint _icon, int maxHealth, int strength, int agility, Color color = Color.None)  : Entity(x, y, _icon, color)
     {
         public enum Stat { Strength, Agility, MaxHealth}
         

@@ -1,7 +1,7 @@
 
 namespace domain
 {
-class Player(int x = 0, int y = 0) : Character(x, y, '@', Color.None, 100, 5, 5)
+class Player(int x = 0, int y = 0) : Character(x, y, '@', 100, 5, 5)
 {
 
     readonly Backpack backpack = new();
