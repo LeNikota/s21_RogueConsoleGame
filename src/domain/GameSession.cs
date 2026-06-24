@@ -128,7 +128,10 @@ namespace domain
                 if (door.Open(Player, level))
                     level.entities.Remove(door);
             }
+
+            level.UpdateVisibility();
             //GameLog = player.position.ToString();
+            
             return true;
         }
 

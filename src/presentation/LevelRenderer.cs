@@ -50,34 +50,75 @@ class LevelRenderer
         NCurses.InitPair(8, CursesColor.BLACK, CursesColor.BLACK);
     }
 
-
     public static void PrintLevel(Level level)
     {
         bool[,] is_wall = level.is_wall;
+        VisibilityState[,] visibility = level.visibility; // NEW
         int width = Level.WIDTH;
         int height = Level.HEIGHT;
+
         NCurses.AttributeSet(NCurses.ColorPair(0));
 
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                if (!is_wall[y, x])
+                VisibilityState vis = visibility[y, x];
+
+                // 1. Unexplored: Draw nothing (or black space)
+                if (vis == VisibilityState.Unexplored)
                 {
                     NCurses.MoveAddChar(y + Y_OFFSET, x, ' ');
                     continue;
                 }
-                int mask = ((y > 0 && is_wall[y - 1, x]) ? (int)WallDir.North : 0) |
-                           ((y < height - 1 && is_wall[y + 1, x]) ? (int)WallDir.South : 0) |
-                           ((x > 0 && is_wall[y, x - 1]) ? (int)WallDir.West : 0) |
-                           ((x < width - 1 && is_wall[y, x + 1]) ? (int)WallDir.East : 0);
 
-                NCurses.MoveAddChar(y + Y_OFFSET, x, WallAcsLookup[mask]);
+                // 2. Explored but not Visible: Draw only walls
+                if (vis == VisibilityState.Explored)
+                {
+                    if (is_wall[y, x])
+                    {
+                        // Draw wall with dim color or standard ACS
+                        int mask = ((y > 0 && is_wall[y - 1, x]) ? (int)WallDir.North : 0) |
+                                   ((y < height - 1 && is_wall[y + 1, x]) ? (int)WallDir.South : 0) |
+                                   ((x > 0 && is_wall[y, x - 1]) ? (int)WallDir.West : 0) |
+                                   ((x < width - 1 && is_wall[y, x + 1]) ? (int)WallDir.East : 0);
+
+                        NCurses.MoveAddChar(y + Y_OFFSET, x, WallAcsLookup[mask]);
+                    }
+                    else
+                    {
+                        NCurses.MoveAddChar(y + Y_OFFSET, x, '.');
+                    }
+                    continue;
+                }
+
+                // 3. Visible: Draw everything normally
+                if (vis == VisibilityState.Visible)
+                {
+                    if (is_wall[y, x])
+                    {
+                        int mask = ((y > 0 && is_wall[y - 1, x]) ? (int)WallDir.North : 0) |
+                                   ((y < height - 1 && is_wall[y + 1, x]) ? (int)WallDir.South : 0) |
+                                   ((x > 0 && is_wall[y, x - 1]) ? (int)WallDir.West : 0) |
+                                   ((x < width - 1 && is_wall[y, x + 1]) ? (int)WallDir.East : 0);
+
+                        NCurses.MoveAddChar(y + Y_OFFSET, x, WallAcsLookup[mask]);
+                    }
+                    else
+                    {
+                        NCurses.MoveAddChar(y + Y_OFFSET, x, ' ');
+                    }
+                }
             }
         }
 
+        // Render Entities ONLY if they are in Visible tiles
         foreach (var entity in level.entities)
         {
+            // Check if the entity's position is currently visible
+            if (visibility[entity.position.Y, entity.position.X] != VisibilityState.Visible)
+                continue;
+
             short pair = 0;
             if (ColorPairMap.TryGetValue(entity.Color, out short p))
             {
