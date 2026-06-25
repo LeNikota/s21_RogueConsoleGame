@@ -50,7 +50,7 @@ namespace domain
 
         public Entity? GetEntityByPos(Vector2i pos)
         {
-            //if there are several entities here, we might have a problem
+            // if there are several entities in one spot, will return first fount entity
             foreach (var e in entities)
             {
                 if (e.position == pos) return e;
@@ -60,7 +60,11 @@ namespace domain
         }
 
 
-        public const int VIEW_RADIUS = 20;
+        // Depending on the VIEW_RADIUS value following scenarios can be emulated:
+        //  10 VIEW_RADIUS - dark dungeons
+        //  4 VIEW_RADIUS - very dark dungeons or player blinded by enemy
+        //  VIEW_RADIUS changes dynamically like from 2-40 - when exiting a pitch black room and entering a lit room
+        public const int VIEW_RADIUS = 40;
         public void UpdateVisibility()
         {
             for (int y = 0; y < HEIGHT; y++)
@@ -86,11 +90,7 @@ namespace domain
                     int dy = y - py;
                     if (dx * dx + dy * dy > VIEW_RADIUS * VIEW_RADIUS) continue;
 
-                    // If there is a direct sight from player point and given point
-                    if (HasLineOfSight(px, py, x, y))
-                    {
-                        visibility[y, x] = VisibilityState.Visible;
-                    }
+                    CastRay(px, py, x, y);
                 }
             }
 
@@ -100,9 +100,19 @@ namespace domain
 
         /// <summary>
         /// Checks, does the point (x0, y0) sees the point (x1, y1)
-        /// Uses Bresenham's algorithm for ray casting    
+        /// Uses Bresenham's algorithm for ray casting
+        /// 
+        /// Current implementations can cause non-displaying corners if a player to close to a room wall
+        /// Rays are not reaching that corner
+        ///      ────────────┘ │
+        ///    │            @  └
+        ///    │
+        ///    └───────────┐ ┌────────
+        /// 
+        /// There is a better implementations that fix this problem
+        /// https://www.albertford.com/shadowcasting/#mark_visible
         /// </summary>
-        private bool HasLineOfSight(int x0, int y0, int x1, int y1)
+        private void CastRay(int x0, int y0, int x1, int y1)
         {
             int dx = Math.Abs(x1 - x0);
             int dy = Math.Abs(y1 - y0);
@@ -115,11 +125,19 @@ namespace domain
 
             while (true)
             {
-                // The point is reached, sight is clear
-                if (x == x1 && y == y1) return true;
+                // The point is reached, there is a direct line of sight to the point
+                if (x == x1 && y == y1)
+                {
+                    visibility[y, x] = VisibilityState.Visible;
+                    return;
+                }
 
-                // There is a wall blocking sight
-                if (is_wall[y, x]) return false;
+                // There is a wall blocking line of sight
+                if (is_wall[y, x])
+                {
+                    visibility[y, x] = VisibilityState.Visible;
+                    return;
+                }
 
                 int e2 = 2 * err;
                 if (e2 > -dy)
