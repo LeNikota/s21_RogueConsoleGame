@@ -59,49 +59,79 @@ namespace domain
 
         }
 
+
+        public const int VIEW_RADIUS = 20;
         public void UpdateVisibility()
         {
-            // 1. Mark all currently Visible tiles as Explored
             for (int y = 0; y < HEIGHT; y++)
             {
                 for (int x = 0; x < WIDTH; x++)
                 {
                     if (visibility[y, x] == VisibilityState.Visible)
-                    {
                         visibility[y, x] = VisibilityState.Explored;
+                }
+            }
+
+            int px = player.position.X;
+            int py = player.position.Y;
+
+            for (int y = py - VIEW_RADIUS; y <= py + VIEW_RADIUS; y++)
+            {
+                for (int x = px - VIEW_RADIUS; x <= px + VIEW_RADIUS; x++)
+                {
+                    if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) continue;
+
+                    // Optimization: check points only inside the circle (distance smaller than radius)
+                    int dx = x - px;
+                    int dy = y - py;
+                    if (dx * dx + dy * dy > VIEW_RADIUS * VIEW_RADIUS) continue;
+
+                    // If there is a direct sight from player point and given point
+                    if (HasLineOfSight(px, py, x, y))
+                    {
+                        visibility[y, x] = VisibilityState.Visible;
                     }
                 }
             }
 
-            // 2. Calculate new Visible tiles using Raycasting
-            // Cast rays from the player to the edges of the map/rooms
-            foreach (var dir in Vector2i.ALL_DIRECTIONS)
-            {
-                CastRay(player.position, dir);
-            }
-
-            visibility[player.position.Y, player.position.X] = VisibilityState.Visible;
+            // Player always sees himself
+            visibility[py, px] = VisibilityState.Visible;
         }
 
-        private void CastRay(Vector2i start, Vector2i direction)
+        /// <summary>
+        /// Checks, does the point (x0, y0) sees the point (x1, y1)
+        /// Uses Bresenham's algorithm for ray casting    
+        /// </summary>
+        private bool HasLineOfSight(int x0, int y0, int x1, int y1)
         {
-            Vector2i current = start;
+            int dx = Math.Abs(x1 - x0);
+            int dy = Math.Abs(y1 - y0);
+            int sx = x0 < x1 ? 1 : -1;
+            int sy = y0 < y1 ? 1 : -1;
+            int err = dx - dy;
 
-            // Step until hit a wall or boundary
+            int x = x0;
+            int y = y0;
+
             while (true)
             {
-                current += direction;
+                // The point is reached, sight is clear
+                if (x == x1 && y == y1) return true;
 
-                // Check bounds
-                if (current.X < 0 || current.X >= WIDTH || current.Y < 0 || current.Y >= HEIGHT)
-                    break;
+                // There is a wall blocking sight
+                if (is_wall[y, x]) return false;
 
-                // Mark as visible
-                visibility[current.Y, current.X] = VisibilityState.Visible;
-
-                // Stop if we hit a wall (walls block vision)
-                if (is_wall[current.Y, current.X])
-                    break;
+                int e2 = 2 * err;
+                if (e2 > -dy)
+                {
+                    err -= dy;
+                    x += sx;
+                }
+                if (e2 < dx)
+                {
+                    err += dx;
+                    y += sy;
+                }
             }
         }
     }
