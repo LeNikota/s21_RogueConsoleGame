@@ -86,6 +86,10 @@ NCurses.EndWin();
         case 't': case 'T':
             game.Input(GameSession.InputAction.DROP);
             break;
+        case 'p': case 'P':
+            UIRenderer.PrintStats(game.Stats);
+            NCurses.GetChar();
+            break;
         case CursesKey.ESC:
             game.Input(GameSession.InputAction.ESCAPE);
             break;

@@ -12,9 +12,9 @@ class UIRenderer
 
         for (int i = 0; i < backpack.Count; i++)
         {
-            NCurses.MoveAddString(y++, x, $"{i+1}) {backpack[i].name}");
+            NCurses.MoveAddString(y++, x, $"{i + 1}) {backpack[i].name}");
         }
-        if (backpack.treasure > 0) NCurses.MoveAddString(y, x, $"{backpack.Count+1}) Treasure worth {backpack.treasure}");
+        if (backpack.treasure > 0) NCurses.MoveAddString(y, x, $"{backpack.Count + 1}) Treasure worth {backpack.treasure}");
 
     }
 
@@ -22,19 +22,41 @@ class UIRenderer
     {
 
         string log = GameLog.GetLog();
-        if (log.Length > Level.WIDTH) log = log[..Level.WIDTH]; 
+        if (log.Length > Level.WIDTH) log = log[..Level.WIDTH];
         NCurses.MoveAddString(0, 0, log.PadRight(Level.WIDTH));
 
         Player p = game.Player;
         string weapon = p.GetWeapon() == null ? "None" : p.GetWeapon()!.name;
-        string stats = 
+        string stats =
             $"Level: {game.GetLevel().floor}, HP: {p.CurrentHealth}/{p.MaxHealth}, STR: {p.Strength}, AG: {p.Agility}, Weapon: {weapon}";
         if (stats.Length > Level.WIDTH) stats = stats[..Level.WIDTH];
-        
+
         NCurses.MoveAddString(Level.HEIGHT + LevelRenderer.Y_OFFSET, 0, stats.PadRight(Level.WIDTH));
         //NCurses.MoveAddString(Level.HEIGHT, 0, $"   {NCurses.Lines - 1}"); //stats.PadRight(Level.WIDTH));
 
         Backpack b = p.GetBackpack();
         if (b.Opened) PrintBackpack(b);
+    }
+
+    public static void PrintStats(GameStatistics stats)
+    {
+        NCurses.Clear();
+        int y = 2;
+        int x = 5;
+
+        NCurses.MoveAddString(y++, x, "=== GAME STATISTICS ===");
+        y++;
+        NCurses.MoveAddString(y++, x, $"Treasures Collected: {stats.TreasuresCollected}");
+        NCurses.MoveAddString(y++, x, $"Highest Level:       {stats.HighestLevelReached}");
+        NCurses.MoveAddString(y++, x, $"Enemies Defeated:    {stats.EnemiesDefeated}");
+        NCurses.MoveAddString(y++, x, $"Food Eaten:          {stats.FoodEaten}");
+        NCurses.MoveAddString(y++, x, $"Elixirs Drunk:       {stats.ElixirsDrunk}");
+        NCurses.MoveAddString(y++, x, $"Scrolls Read:        {stats.ScrollsRead}");
+        NCurses.MoveAddString(y++, x, $"Hits Dealt:          {stats.HitsDealt}");
+        NCurses.MoveAddString(y++, x, $"Hits Taken:          {stats.HitsTaken}");
+        NCurses.MoveAddString(y++, x, $"Tiles Traversed:     {stats.TilesTraversed}");
+
+        NCurses.MoveAddString(NCurses.Lines - 2, 2, "Press any key to return...");
+        NCurses.Refresh();
     }
 }

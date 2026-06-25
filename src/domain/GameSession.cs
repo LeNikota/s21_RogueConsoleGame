@@ -3,29 +3,29 @@ namespace domain
     class GameSession
     {
         public enum InputAction { NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, BACKPACK, DROP, WEAPON, FOOD, ELIXIR, SCROLL, RESTART };
-
         public enum State { PLAYING, OVER, EXITING };
         public readonly Dictionary<InputAction, Vector2i> InputDirectionMap = new()
-    {
-        {InputAction.UP, Vector2i.UP},
-        {InputAction.DOWN, Vector2i.DOWN},
-        {InputAction.LEFT, Vector2i.LEFT},
-        {InputAction.RIGHT, Vector2i.RIGHT}
-    };
+        {
+            {InputAction.UP, Vector2i.UP},
+            {InputAction.DOWN, Vector2i.DOWN},
+            {InputAction.LEFT, Vector2i.LEFT},
+            {InputAction.RIGHT, Vector2i.RIGHT}
+        };
 
         public readonly Dictionary<InputAction, Backpack.Action> InputBackpackMap = new()
-    {
-        {InputAction.DROP, Backpack.Action.DROP},
-        {InputAction.WEAPON, Backpack.Action.WEAPON},
-        {InputAction.FOOD, Backpack.Action.FOOD},
-        {InputAction.ELIXIR, Backpack.Action.ELIXIR},
-        {InputAction.SCROLL, Backpack.Action.SCROLL}
-    };
+        {
+            {InputAction.DROP, Backpack.Action.DROP},
+            {InputAction.WEAPON, Backpack.Action.WEAPON},
+            {InputAction.FOOD, Backpack.Action.FOOD},
+            {InputAction.ELIXIR, Backpack.Action.ELIXIR},
+            {InputAction.SCROLL, Backpack.Action.SCROLL}
+        };
 
         private Level level;
         public Player Player { get { return level.player; } }
-
         public State state = State.PLAYING;
+        public GameStatistics Stats { get; private set; } = new GameStatistics();
+
 
         public GameSession()
         {
@@ -97,10 +97,18 @@ namespace domain
 
         private void OnGameOverInput(InputAction action)
         {
-            if (action == InputAction.ESCAPE) state = State.EXITING;
+            // TODO: Call DataService.SaveStatistics(Stats) here
+
+            if (action == InputAction.ESCAPE)
+            {
+                state = State.EXITING;
+            }
             else if (action == InputAction.RESTART)
             {
+                Stats.Reset();
                 level = new Level(1, new Player());
+                Stats.HighestLevelReached = 1;
+                state = State.PLAYING;
             }
         }
 
@@ -108,6 +116,9 @@ namespace domain
         {
             if (!level.IsPositionValid(new_pos)) return false;
             Entity? entity = level.GetEntityByPos(new_pos);
+
+            if (Player.position != new_pos)
+                Stats.TilesTraversed++;
 
             if (entity == null)
                 Player.position = new_pos;
@@ -130,13 +141,14 @@ namespace domain
             }
 
             level.UpdateVisibility();
-            //GameLog = player.position.ToString();
-            
+
             return true;
         }
 
         private void OnEnemyTouched(Enemy enemy)
         {
+            Stats.HitsDealt++;
+
             Player.Attack(enemy);
             if (enemy.IsDead())
             {
@@ -179,6 +191,8 @@ namespace domain
                 if (path[0] == Player.position)
                 {
                     enemy.Attack(Player);
+                    Stats.HitsTaken++;
+
                     if (Player.IsDead())
                     {
                         state = State.OVER;
@@ -193,6 +207,8 @@ namespace domain
         public void OnLevelExited()
         {
             level = new Level(level.floor + 1, Player);
+            if (level.floor > Stats.HighestLevelReached)
+                Stats.HighestLevelReached = level.floor;
         }
 
     }

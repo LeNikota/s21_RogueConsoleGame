@@ -1,7 +1,7 @@
 
 namespace domain
 {
-class Player(int x = 0, int y = 0) : Character(x, y, '@', 100, 5, 5)
+class Player(int x = 0, int y = 0, GameStatistics? stats = null) : Character(x, y, '@', 100, 5, 5)
 {
 
     readonly Backpack backpack = new();
@@ -47,25 +47,33 @@ class Player(int x = 0, int y = 0) : Character(x, y, '@', 100, 5, 5)
     public bool Eat(int id)
     {
         if (backpack[id] is not Food) return false;
+
         Food food = (Food)backpack[id];
         CurrentHealth = Math.Min(MaxHealth, CurrentHealth + food.Health);
         backpack.Remove(food);
+
+        if (stats != null) stats.FoodEaten++;
+
         return true;
     }
 
     public bool Read(int id)
     {
         if (backpack[id] is not Scroll) return false;
+
         Scroll scroll = (Scroll)backpack[id];
-        
         ModifyStat(scroll.Stat, scroll.Power);
         backpack.Remove(scroll);
+
+        if (stats != null) stats.ScrollsRead++;
+
         return true;
     }
 
     public bool Drink(int id)
     {
         if (backpack[id] is not Elixir) return false;
+
         Elixir elixir = (Elixir)backpack[id];
         elixir.TurnsLeft += 1; //to mitigate immediate decrease
         
@@ -73,6 +81,9 @@ class Player(int x = 0, int y = 0) : Character(x, y, '@', 100, 5, 5)
         ActiveElixirs.Add(elixir);
         backpack.Remove(elixir);
         
+        if (stats != null) stats.ElixirsDrunk++;
+
+
         return true;
     }
 
