@@ -3,7 +3,7 @@ namespace domain
     class GameSession
     {
         public enum InputAction { NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, BACKPACK, DROP, WEAPON, FOOD, ELIXIR, SCROLL, RESTART };
-        public enum State { PLAYING, OVER, EXITING };
+        public enum State { MENU, PLAYING, OVER, EXITING, PAUSED };
         public readonly Dictionary<InputAction, Vector2i> InputDirectionMap = new()
         {
             {InputAction.UP, Vector2i.UP},
@@ -21,18 +21,19 @@ namespace domain
             {InputAction.SCROLL, Backpack.Action.SCROLL}
         };
 
-        private Level level;
-        public Player Player { get { return level.player; } }
+        private Level? level;
+        public Player Player => level?.player;
         public State state = State.PLAYING;
         public GameStatistics Stats { get; private set; } = new GameStatistics();
 
 
-        public GameSession()
+        public GameSession(/* IDataService dataService */)
         {
-            level = new Level(1, new Player());
+            state = State.MENU;
+            level = null;
         }
 
-        public Level GetLevel()
+        public Level? GetLevel()
         {
             return level;
         }
@@ -41,17 +42,44 @@ namespace domain
         {
             switch (state)
             {
+                case State.MENU:
+                    OnMenuInput(action);
+                    break;
                 case State.PLAYING:
                     GameLog.Clear();
                     if (!OnGameRunningInput(action, backpack_id)) return;
-                    OnEnemyTurn(); //getting here only if a valid player's turn is made:
-                    Player.OnTurnEnded(); //wearing down active elixirs
+                    // getting here only if a valid player's turn is made:
+                    OnEnemyTurn();
+                    // wearing down active elixirs
+                    Player.OnTurnEnded();
+                    break;
+                case State.PAUSED:
+                    OnPauseInput(action);
                     break;
                 case State.OVER:
                     OnGameOverInput(action);
                     break;
-                    //on exiting ignore
             }
+        }
+
+        private void OnMenuInput(InputAction action)
+        {
+            if (action == InputAction.UP || action == InputAction.DOWN)
+            {
+                // TODO: Add menu selection
+                StartNewGame();
+
+            } else
+            {
+                state = State.EXITING;
+            }
+        }
+
+        private void StartNewGame()
+        {
+            level = new Level(1, new Player());
+            state = State.PLAYING;
+            GameLog.Log("Welcome to s21_rogue! Use WASD to move.");
         }
 
         private bool OnGameRunningInput(InputAction action, int? backpack_id = null)
@@ -78,8 +106,14 @@ namespace domain
             }
             else if (action == InputAction.ESCAPE)
             {
-                if (backpack.Opened) backpack.Opened = false;
-                else state = State.OVER;
+                if (backpack.Opened)
+                {
+                    backpack.Opened = false;
+                    return false;
+                }
+
+                state = State.PAUSED;
+
                 return false;
             }
             else if (action == InputAction.BACKPACK)
@@ -92,7 +126,20 @@ namespace domain
             else if (action == InputAction.NONE)
                 return backpack.OnAction(backpack_id, Player, level);
 
-            return false;
+            return true;
+        }
+
+        private void OnPauseInput(InputAction action)
+        {
+            if (action == InputAction.ESCAPE)
+            {
+                state = State.PLAYING;
+            }
+            else if (action == InputAction.RESTART)
+            {
+                state = State.MENU;
+                level = null;
+            }
         }
 
         private void OnGameOverInput(InputAction action)
@@ -105,10 +152,12 @@ namespace domain
             }
             else if (action == InputAction.RESTART)
             {
-                Stats.Reset();
-                level = new Level(1, new Player());
-                Stats.HighestLevelReached = 1;
-                state = State.PLAYING;
+                state = State.MENU;
+                level = null;
+                // Stats.Reset();
+                // level = new Level(1, new Player());
+                // Stats.HighestLevelReached = 1;
+                // state = State.PLAYING;
             }
         }
 

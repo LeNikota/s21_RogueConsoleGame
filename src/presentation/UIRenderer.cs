@@ -20,6 +20,45 @@ class UIRenderer
 
     public static void PrintUI(GameSession game)
     {
+        switch (game.state)
+        {
+            case GameSession.State.MENU:
+                PrintMainMenu();
+                break;
+            case GameSession.State.PLAYING:
+                PrintGameUI(game);
+                break;
+            case GameSession.State.PAUSED:
+                // Draws game underneath
+                PrintGameUI(game);
+                PrintPauseMenu();
+                break;
+            case GameSession.State.OVER:
+                PrintGameOver();
+                break;
+        }
+    }
+
+
+    private static void PrintMainMenu()
+    {
+        int centerX = Level.WIDTH / 2;
+        int centerY = Level.HEIGHT / 2;
+
+        string title = "S21 ROGUE";
+        NCurses.MoveAddString(centerY - 4, centerX - title.Length / 2, title);
+
+        string option1 = "Press [SPACE] or [ENTER] to Start";
+        string option2 = "Press [ESC] to Exit";
+        string high_score = "--- High Scores ---";
+        NCurses.MoveAddString(centerY, centerX - option1.Length / 2, option1);
+        NCurses.MoveAddString(centerY + 2, centerX - option2.Length / 2, option2);
+        NCurses.MoveAddString(centerY + 5, centerX - high_score.Length / 2, high_score);
+    }
+
+    private static void PrintGameUI(GameSession game)
+    {
+        if (game.GetLevel() == null) return;
 
         string log = GameLog.GetLog();
         if (log.Length > Level.WIDTH) log = log[..Level.WIDTH];
@@ -27,15 +66,49 @@ class UIRenderer
 
         Player p = game.Player;
         string weapon = p.GetWeapon() == null ? "None" : p.GetWeapon()!.name;
-        string stats =
-            $"Level: {game.GetLevel().floor}, HP: {p.CurrentHealth}/{p.MaxHealth}, STR: {p.Strength}, AG: {p.Agility}, Weapon: {weapon}";
-        if (stats.Length > Level.WIDTH) stats = stats[..Level.WIDTH];
+        string stats = $"Lvl: {game.GetLevel().floor}, HP: {p.CurrentHealth}/{p.MaxHealth}, STR: {p.Strength}, AG: {p.Agility}, Wpn: {weapon}";
 
+        if (stats.Length > Level.WIDTH) stats = stats[..Level.WIDTH];
         NCurses.MoveAddString(Level.HEIGHT + LevelRenderer.Y_OFFSET, 0, stats.PadRight(Level.WIDTH));
-        //NCurses.MoveAddString(Level.HEIGHT, 0, $"   {NCurses.Lines - 1}"); //stats.PadRight(Level.WIDTH));
 
         Backpack b = p.GetBackpack();
         if (b.Opened) PrintBackpack(b);
+    }
+
+    private static void PrintPauseMenu()
+    {
+        int width = 30;
+        int height = 8;
+        int startX = (Level.WIDTH - width) / 2;
+        int startY = (Level.HEIGHT - height) / 2;
+
+        // Draw Box
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                if (y == 0 || y == height - 1)
+                    NCurses.MoveAddChar(startY + y, startX + x, '-');
+                else if (x == 0 || x == width - 1)
+                    NCurses.MoveAddChar(startY + y, startX + x, '|');
+                else
+                    NCurses.MoveAddChar(startY + y, startX + x, ' ');
+            }
+        }
+
+        NCurses.MoveAddString(startY + 2, startX + 10, "PAUSED");
+        NCurses.MoveAddString(startY + 4, startX + 6, "[ESC] Resume");
+        NCurses.MoveAddString(startY + 5, startX + 6, "[R] Main Menu");
+    }
+
+    private static void PrintGameOver()
+    {
+        int centerX = Level.WIDTH / 2;
+        int centerY = Level.HEIGHT / 2;
+
+        NCurses.MoveAddString(centerY - 2, centerX - 10, "GAME OVER");
+        NCurses.MoveAddString(centerY, centerX - 12, "Press [R] to Restart");
+        NCurses.MoveAddString(centerY + 1, centerX - 12, "Press [ESC] to Exit");
     }
 
     public static void PrintStats(GameStatistics stats)
