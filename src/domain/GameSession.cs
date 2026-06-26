@@ -32,6 +32,11 @@ namespace domain
         public string[] MenuOptions => menuOptions;
 
 
+        private int pauseSelectionIndex = 0;
+        private readonly string[] pauseOptions = ["Resume", "Main Menu"];
+        public int PauseSelectionIndex => pauseSelectionIndex;
+        public string[] PauseOptions => pauseOptions;
+
         public GameSession(/* IDataService dataService */)
         {
             state = State.MENU;
@@ -142,14 +147,31 @@ namespace domain
 
         private void OnPauseInput(InputAction action)
         {
-            if (action == InputAction.ESCAPE)
+            if (action == InputAction.UP)
+            {
+                pauseSelectionIndex = (pauseSelectionIndex - 1 + pauseOptions.Length) % pauseOptions.Length;
+            }
+            else if (action == InputAction.DOWN)
+            {
+                pauseSelectionIndex = (pauseSelectionIndex + 1) % pauseOptions.Length;
+            }
+            else if (action == InputAction.ENTER)
+            {
+                switch (pauseSelectionIndex)
+                {
+                    case 0:
+                        state = State.PLAYING;
+                        break;
+                    case 1:
+                        state = State.MENU;
+                        level = null;
+                        pauseSelectionIndex = 0;
+                        break;
+                }
+            }
+            else if (action == InputAction.ESCAPE)
             {
                 state = State.PLAYING;
-            }
-            else if (action == InputAction.RESTART)
-            {
-                state = State.MENU;
-                level = null;
             }
         }
 

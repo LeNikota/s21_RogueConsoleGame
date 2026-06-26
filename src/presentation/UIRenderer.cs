@@ -31,7 +31,7 @@ class UIRenderer
             case GameSession.State.PAUSED:
                 // Draws game underneath
                 PrintGameUI(game);
-                PrintPauseMenu();
+                PrintPauseMenu(game);
                 break;
             case GameSession.State.OVER:
                 PrintGameOver();
@@ -89,14 +89,14 @@ class UIRenderer
         if (b.Opened) PrintBackpack(b);
     }
 
-    private static void PrintPauseMenu()
+    private static void PrintPauseMenu(GameSession game)
     {
         int width = 30;
         int height = 8;
         int startX = (Level.WIDTH - width) / 2;
         int startY = (Level.HEIGHT - height) / 2;
 
-        // Draw Box
+        // Draw Box Background
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
@@ -110,9 +110,26 @@ class UIRenderer
             }
         }
 
-        NCurses.MoveAddString(startY + 2, startX + 10, "PAUSED");
-        NCurses.MoveAddString(startY + 4, startX + 6, "[ESC] Resume");
-        NCurses.MoveAddString(startY + 5, startX + 6, "[R] Main Menu");
+        NCurses.MoveAddString(startY + 2, startX + 12, "PAUSED");
+
+        // Draw Options Dynamically
+        for (int i = 0; i < game.PauseOptions.Length; i++)
+        {
+            string option = game.PauseOptions[i];
+            int x = startX + (width - option.Length) / 2;
+            int y = startY + 4 + i;
+
+            if (i == game.PauseSelectionIndex)
+            {
+                NCurses.AttributeSet(NCurses.ColorPair(5)); // Highlight color
+                NCurses.MoveAddString(y, x - 2, "> " + option + " <");
+                NCurses.AttributeSet(NCurses.ColorPair(0)); // Reset
+            }
+            else
+            {
+                NCurses.MoveAddString(y, x, option);
+            }
+        }
     }
 
     private static void PrintGameOver()
