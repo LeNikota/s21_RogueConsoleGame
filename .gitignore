@@ -170,3 +170,6 @@ Thumbs.db
 *.pdb
 *.runtimeconfig.dev.json
 src.csproj.lscache
+
+rogue_save.json
+game_save.json

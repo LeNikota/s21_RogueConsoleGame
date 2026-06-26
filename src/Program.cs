@@ -1,7 +1,7 @@
 ﻿using Mindmagma.Curses;
 using System.Runtime.InteropServices;
 using domain;
-// using data;
+using data;
 
 ResizeTerminal();
 nint screen = NCurses.InitScreen();
@@ -21,9 +21,8 @@ NCurses.Keypad(screen, true);
 NCurses.NoEcho();
 
 bool shouldClose = false;
-GameSession game = new();
-
-// IDataService dataService = new JsonDataService("rogue_save.json");
+IDataService dataService = new JsonDataService();
+GameSession game = new(dataService);
 
 while (!shouldClose)
 {

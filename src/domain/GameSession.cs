@@ -41,11 +41,16 @@ class GameSession
         }
     }
 
+    private readonly IDataService _dataService;
+    private SaveData? _lastSaveData;
 
-    public GameSession(/* IDataService dataService */)
+    public GameSession(IDataService dataService)
     {
+        _dataService = dataService;
         state = State.MENU;
         level = null;
+
+        LoadHighScoresAsync();
 
         _mainMenu = new Menu(
             "==== S21 ROGUE GAME ====",
@@ -78,11 +83,65 @@ class GameSession
                 })
             ]
         );
+
     }
 
     public Level? GetLevel()
     {
         return level;
+    }
+
+    private async void LoadHighScoresAsync()
+    {
+        var data = await _dataService.LoadAsync();
+        if (data != null)
+        {
+            _lastSaveData = data;
+            // TODO: restore active game
+        }
+        else
+        {
+            _lastSaveData = new SaveData();
+        }
+    }
+
+    private void RecordHighScore()
+    {
+        _lastSaveData ??= new SaveData();
+
+        // Adds current stats to history
+        _lastSaveData.HighScores.Add(Stats);
+
+        // Sorts by treasures collected (descending)
+        _lastSaveData.HighScores.Sort((a, b) => b.TreasuresCollected.CompareTo(a.TreasuresCollected));
+
+        // Keep only top 10
+        if (_lastSaveData.HighScores.Count > 10)
+            _lastSaveData.HighScores.RemoveAt(10);
+
+        // Save asynchronously
+        _dataService.SaveAsync(_lastSaveData);
+    }
+
+    private void SaveProgress()
+    {
+        if (_lastSaveData == null) _lastSaveData = new SaveData();
+
+        _lastSaveData.Floor = level.floor;
+        _lastSaveData.PlayerX = Player.position.X;
+        _lastSaveData.PlayerY = Player.position.Y;
+        _lastSaveData.CurrentHealth = Player.CurrentHealth;
+        _lastSaveData.MaxHealth = Player.MaxHealth;
+        _lastSaveData.Strength = Player.Strength;
+        _lastSaveData.Agility = Player.Agility;
+        _lastSaveData.Treasure = Player.GetBackpack().treasure;
+        _lastSaveData.CurrentRunStats = Stats;
+
+        // TODO: Save player and his inventory.
+        // TODO: Save a map of the level.
+
+        _dataService.SaveAsync(_lastSaveData).Wait();
+        GameLog.Add("Game progress saved.");
     }
 
     public void Input(InputAction action, int? backpack_id = null)
@@ -156,20 +215,16 @@ class GameSession
 
     private void OnGameOverInput(InputAction action)
     {
-        // TODO: Call DataService.SaveStatistics(Stats) here
-
         if (action == InputAction.ESCAPE)
         {
+            RecordHighScore();
             state = State.EXITING;
         }
         else if (action == InputAction.RESTART)
         {
+            RecordHighScore();
             state = State.MENU;
             level = null;
-            // Stats.Reset();
-            // level = new Level(1, new Player());
-            // Stats.HighestLevelReached = 1;
-            // state = State.PLAYING;
         }
     }
 
@@ -267,6 +322,8 @@ class GameSession
 
     public void OnLevelExited()
     {
+        SaveProgress();
+
         level = new Level(level.floor + 1, Player);
         if (level.floor > Stats.HighestLevelReached)
             Stats.HighestLevelReached = level.floor;
