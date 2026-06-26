@@ -23,15 +23,11 @@ class UIRenderer
         switch (game.state)
         {
             case GameSession.State.MENU:
-                PrintMainMenu(game);
+            case GameSession.State.PAUSED:
+                PrintMenu(game.CurrentMenu);
                 break;
             case GameSession.State.PLAYING:
                 PrintGameUI(game);
-                break;
-            case GameSession.State.PAUSED:
-                // Draws game underneath
-                PrintGameUI(game);
-                PrintPauseMenu(game);
                 break;
             case GameSession.State.OVER:
                 PrintGameOver();
@@ -39,36 +35,42 @@ class UIRenderer
         }
     }
 
-
-    private static void PrintMainMenu(GameSession game)
+    private static void PrintMenu(Menu? menu)
     {
+        if (menu == null) return;
+
         NCurses.Clear();
         int centerX = Level.WIDTH / 2;
         int centerY = Level.HEIGHT / 2;
 
-        string title = "==== S21 ROGUE GAME ====";
-        NCurses.MoveAddString(centerY - 4, centerX - title.Length / 2, title);
+        // Draw Title
+        if (!string.IsNullOrEmpty(menu.Title))
+        {
+            NCurses.MoveAddString(centerY - 4, centerX - menu.Title.Length / 2, menu.Title);
+        }
 
-        for (int i = 0; i < game.MenuOptions.Length; i++)
+        // Draw Options
+        for (int i = 0; i < menu.Count; i++)
         {
             int y = centerY + i * 2;
-            string option = game.MenuOptions[i];
-            int x = centerX - option.Length / 2;
+            string label = menu.GetLabel(i);
+            int x = centerX - label.Length / 2;
 
-            if (i == game.MenuSelectionIndex)
+            if (i == menu.SelectionIndex)
             {
-                NCurses.AttributeSet(NCurses.ColorPair(5));
-                NCurses.MoveAddString(y, x - 2, "> " + option + " <");
+                NCurses.AttributeSet(NCurses.ColorPair(5)); // Highlight color
+                NCurses.MoveAddString(y, x - 2, "> " + label + " <");
                 NCurses.AttributeSet(NCurses.ColorPair(0));
             }
             else
             {
-                NCurses.MoveAddString(y, x, option);
+                NCurses.MoveAddString(y, x, label);
             }
         }
 
         NCurses.MoveAddString(centerY + 10, centerX - 19, "Use UP/DOWN to select, ENTER to confirm");
     }
+
 
     private static void PrintGameUI(GameSession game)
     {
@@ -87,49 +89,6 @@ class UIRenderer
 
         Backpack b = p.GetBackpack();
         if (b.Opened) PrintBackpack(b);
-    }
-
-    private static void PrintPauseMenu(GameSession game)
-    {
-        int width = 30;
-        int height = 8;
-        int startX = (Level.WIDTH - width) / 2;
-        int startY = (Level.HEIGHT - height) / 2;
-
-        // Draw Box Background
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                if (y == 0 || y == height - 1)
-                    NCurses.MoveAddChar(startY + y, startX + x, '-');
-                else if (x == 0 || x == width - 1)
-                    NCurses.MoveAddChar(startY + y, startX + x, '|');
-                else
-                    NCurses.MoveAddChar(startY + y, startX + x, ' ');
-            }
-        }
-
-        NCurses.MoveAddString(startY + 2, startX + 12, "PAUSED");
-
-        // Draw Options Dynamically
-        for (int i = 0; i < game.PauseOptions.Length; i++)
-        {
-            string option = game.PauseOptions[i];
-            int x = startX + (width - option.Length) / 2;
-            int y = startY + 4 + i;
-
-            if (i == game.PauseSelectionIndex)
-            {
-                NCurses.AttributeSet(NCurses.ColorPair(5)); // Highlight color
-                NCurses.MoveAddString(y, x - 2, "> " + option + " <");
-                NCurses.AttributeSet(NCurses.ColorPair(0)); // Reset
-            }
-            else
-            {
-                NCurses.MoveAddString(y, x, option);
-            }
-        }
     }
 
     private static void PrintGameOver()
