@@ -26,6 +26,9 @@ class UIRenderer
             case GameSession.State.PAUSED:
                 PrintMenu(game.CurrentMenu);
                 break;
+            case GameSession.State.STATS:
+                PrintStats(game);
+                break;
             case GameSession.State.PLAYING:
                 PrintGameUI(game);
                 break;
@@ -101,23 +104,32 @@ class UIRenderer
         NCurses.MoveAddString(centerY + 1, centerX - 12, "Press [ESC] to Exit");
     }
 
-    public static void PrintStats(GameStatistics stats)
+    public static void PrintStats(GameSession game)
     {
         NCurses.Clear();
         int y = 2;
         int x = 5;
 
-        NCurses.MoveAddString(y++, x, "=== GAME STATISTICS ===");
+        NCurses.MoveAddString(y++, x, "=== CURRENT RUN STATISTICS ===");
         y++;
-        NCurses.MoveAddString(y++, x, $"Treasures Collected: {stats.TreasuresCollected}");
-        NCurses.MoveAddString(y++, x, $"Highest Level:       {stats.HighestLevelReached}");
-        NCurses.MoveAddString(y++, x, $"Enemies Defeated:    {stats.EnemiesDefeated}");
-        NCurses.MoveAddString(y++, x, $"Food Eaten:          {stats.FoodEaten}");
-        NCurses.MoveAddString(y++, x, $"Elixirs Drunk:       {stats.ElixirsDrunk}");
-        NCurses.MoveAddString(y++, x, $"Scrolls Read:        {stats.ScrollsRead}");
-        NCurses.MoveAddString(y++, x, $"Hits Dealt:          {stats.HitsDealt}");
-        NCurses.MoveAddString(y++, x, $"Hits Taken:          {stats.HitsTaken}");
-        NCurses.MoveAddString(y++, x, $"Tiles Traversed:     {stats.TilesTraversed}");
+        NCurses.MoveAddString(y++, x, $"Treasures Collected: {game.Stats.TreasuresCollected}");
+        NCurses.MoveAddString(y++, x, $"Highest Level:       {game.Stats.HighestLevelReached}");
+        NCurses.MoveAddString(y++, x, $"Enemies Defeated:    {game.Stats.EnemiesDefeated}");
+        NCurses.MoveAddString(y++, x, $"Food Eaten:          {game.Stats.FoodEaten}");
+        NCurses.MoveAddString(y++, x, $"Elixirs Drunk:       {game.Stats.ElixirsDrunk}");
+        NCurses.MoveAddString(y++, x, $"Scrolls Read:        {game.Stats.ScrollsRead}");
+        NCurses.MoveAddString(y++, x, $"Hits Dealt:          {game.Stats.HitsDealt}");
+        NCurses.MoveAddString(y++, x, $"Hits Taken:          {game.Stats.HitsTaken}");
+        NCurses.MoveAddString(y++, x, $"Tiles Traversed:     {game.Stats.TilesTraversed}");
+
+        y += 2;
+        NCurses.MoveAddString(y++, x, "=== HIGH SCORES (Top Treasures) ===");
+
+        var scores = game.GetHighScores();
+        for (int i = 0; i < Math.Min(scores.Count, 10); i++)
+        {
+            NCurses.MoveAddString(y++, x, $"{i + 1}. Lvl: {scores[i].HighestLevelReached}, Gold: {scores[i].TreasuresCollected}");
+        }
 
         NCurses.MoveAddString(NCurses.Lines - 2, 2, "Press any key to return...");
         NCurses.Refresh();

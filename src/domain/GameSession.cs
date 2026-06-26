@@ -3,7 +3,7 @@ namespace domain;
 class GameSession
 {
     public enum InputAction { NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, ENTER, BACKPACK, DROP, WEAPON, FOOD, ELIXIR, SCROLL, RESTART };
-    public enum State { MENU, PLAYING, OVER, EXITING, PAUSED };
+    public enum State { MENU, PLAYING, OVER, EXITING, PAUSED, STATS };
     public readonly Dictionary<InputAction, Vector2i> InputDirectionMap = new()
         {
             {InputAction.UP, Vector2i.UP},
@@ -43,6 +43,7 @@ class GameSession
 
     private readonly IDataService _dataService;
     private SaveData? _lastSaveData;
+    public List<GameStatistics> GetHighScores() => _lastSaveData?.HighScores ?? [];
 
     public GameSession(IDataService dataService)
     {
@@ -56,13 +57,16 @@ class GameSession
             "==== S21 ROGUE GAME ====",
             [
                 ("Start New Game", () => {
-                    level = new Level(1, new Player());
-                    state = State.PLAYING;
-                    GameLog.Log("Welcome to s21_rogue! Use WASD to move.");
-                }),
-                ("Exit", () => {
-                    state = State.EXITING;
-                })
+                        level = new Level(1, new Player());
+                        state = State.PLAYING;
+                        GameLog.Log("Welcome to s21_rogue! Use WASD to move.");
+                    }),
+                    ("View Statistics", () => {
+                        state = State.STATS;
+                    }),
+                    ("Exit", () => {
+                        state = State.EXITING;
+                    })
             ]
         );
 
@@ -71,19 +75,21 @@ class GameSession
             [
                 ("Resume", () => {
                         state = State.PLAYING;
-                }),
-                ("Restart", () => {
+                    }),
+                    ("Restart", () => {
                         state = State.PLAYING;
                         level = new Level(1, new Player());
-                }),
-                ("Main Menu", () => {
+                    }),
+                    ("View Statistics", () => {
+                        state = State.STATS;
+                    }),
+                    ("Main Menu", () => {
                         state = State.MENU;
                         level = null;
                         _mainMenu.Reset();
-                })
+                    })
             ]
         );
-
     }
 
     public Level? GetLevel()
@@ -151,6 +157,12 @@ class GameSession
             case State.MENU:
             case State.PAUSED:
                 CurrentMenu?.HandleInput(action);
+                break;
+            case State.STATS:
+                // Any key exits stats view and returns to previous state
+                // if level is null (Menu) or not (Paused)
+                if (level == null) state = State.MENU;
+                else state = State.PAUSED;
                 break;
             case State.PLAYING:
                 GameLog.Clear();

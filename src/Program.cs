@@ -95,11 +95,6 @@ void Input(GameSession game)
         case 'T':
             game.Input(GameSession.InputAction.DROP);
             break;
-        case 'p':
-        case 'P':
-            UIRenderer.PrintStats(game.Stats);
-            NCurses.GetChar();
-            break;
         case 'r':
         case 'R':
             game.Input(GameSession.InputAction.RESTART);
