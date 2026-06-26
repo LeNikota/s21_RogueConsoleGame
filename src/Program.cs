@@ -52,7 +52,6 @@ while (!shouldClose)
 NCurses.EndWin();
 
 
-/* static */
 void Input(GameSession game)
 {
     int key = NCurses.GetChar();
@@ -113,6 +112,15 @@ void Input(GameSession game)
         case 'P':
             UIRenderer.PrintStats(game.Stats);
             NCurses.GetChar();
+            break;
+        case 'r':
+        case 'R':
+            game.Input(GameSession.InputAction.RESTART);
+            break;
+        case '\n':
+        case '\r':
+        case CursesKey.ENTER:
+            game.Input(GameSession.InputAction.ENTER);
             break;
         case CursesKey.ESC:
             game.Input(GameSession.InputAction.ESCAPE);

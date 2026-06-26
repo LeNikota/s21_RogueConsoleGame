@@ -2,7 +2,7 @@ namespace domain
 {
     class GameSession
     {
-        public enum InputAction { NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, BACKPACK, DROP, WEAPON, FOOD, ELIXIR, SCROLL, RESTART };
+        public enum InputAction { NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, ENTER, BACKPACK, DROP, WEAPON, FOOD, ELIXIR, SCROLL, RESTART };
         public enum State { MENU, PLAYING, OVER, EXITING, PAUSED };
         public readonly Dictionary<InputAction, Vector2i> InputDirectionMap = new()
         {
@@ -25,6 +25,11 @@ namespace domain
         public Player Player => level?.player;
         public State state = State.PLAYING;
         public GameStatistics Stats { get; private set; } = new GameStatistics();
+
+        private int menuSelectionIndex = 0;
+        public int MenuSelectionIndex => menuSelectionIndex;
+        private readonly string[] menuOptions = ["Start new game", "Exit"];
+        public string[] MenuOptions => menuOptions;
 
 
         public GameSession(/* IDataService dataService */)
@@ -64,22 +69,28 @@ namespace domain
 
         private void OnMenuInput(InputAction action)
         {
-            if (action == InputAction.UP || action == InputAction.DOWN)
+            if (action == InputAction.UP)
             {
-                // TODO: Add menu selection
-                StartNewGame();
-
-            } else
-            {
-                state = State.EXITING;
+                menuSelectionIndex = (menuSelectionIndex - 1 + menuOptions.Length) % menuOptions.Length;
             }
-        }
-
-        private void StartNewGame()
-        {
-            level = new Level(1, new Player());
-            state = State.PLAYING;
-            GameLog.Log("Welcome to s21_rogue! Use WASD to move.");
+            else if (action == InputAction.DOWN)
+            {
+                menuSelectionIndex = (menuSelectionIndex + 1) % menuOptions.Length;
+            }
+            else if (action == InputAction.ENTER)
+            {
+                switch (menuSelectionIndex)
+                {
+                    case 0:
+                        level = new Level(1, new Player());
+                        state = State.PLAYING;
+                        GameLog.Log("Welcome to s21_rogue! Use WASD to move.");
+                        break;
+                    case 1:
+                        state = State.EXITING;
+                        break;
+                }
+            }
         }
 
         private bool OnGameRunningInput(InputAction action, int? backpack_id = null)

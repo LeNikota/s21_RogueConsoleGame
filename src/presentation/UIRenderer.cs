@@ -23,7 +23,7 @@ class UIRenderer
         switch (game.state)
         {
             case GameSession.State.MENU:
-                PrintMainMenu();
+                PrintMainMenu(game);
                 break;
             case GameSession.State.PLAYING:
                 PrintGameUI(game);
@@ -40,20 +40,34 @@ class UIRenderer
     }
 
 
-    private static void PrintMainMenu()
+    private static void PrintMainMenu(GameSession game)
     {
+        NCurses.Clear();
         int centerX = Level.WIDTH / 2;
         int centerY = Level.HEIGHT / 2;
 
-        string title = "S21 ROGUE";
+        string title = "==== S21 ROGUE GAME ====";
         NCurses.MoveAddString(centerY - 4, centerX - title.Length / 2, title);
 
-        string option1 = "Press [SPACE] or [ENTER] to Start";
-        string option2 = "Press [ESC] to Exit";
-        string high_score = "--- High Scores ---";
-        NCurses.MoveAddString(centerY, centerX - option1.Length / 2, option1);
-        NCurses.MoveAddString(centerY + 2, centerX - option2.Length / 2, option2);
-        NCurses.MoveAddString(centerY + 5, centerX - high_score.Length / 2, high_score);
+        for (int i = 0; i < game.MenuOptions.Length; i++)
+        {
+            int y = centerY + i * 2;
+            string option = game.MenuOptions[i];
+            int x = centerX - option.Length / 2;
+
+            if (i == game.MenuSelectionIndex)
+            {
+                NCurses.AttributeSet(NCurses.ColorPair(5));
+                NCurses.MoveAddString(y, x - 2, "> " + option + " <");
+                NCurses.AttributeSet(NCurses.ColorPair(0));
+            }
+            else
+            {
+                NCurses.MoveAddString(y, x, option);
+            }
+        }
+
+        NCurses.MoveAddString(centerY + 10, centerX - 19, "Use UP/DOWN to select, ENTER to confirm");
     }
 
     private static void PrintGameUI(GameSession game)
