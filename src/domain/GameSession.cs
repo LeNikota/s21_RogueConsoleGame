@@ -1,3 +1,5 @@
+using data;
+
 namespace domain;
 
 class GameSession
@@ -22,7 +24,8 @@ class GameSession
         };
 
     private Level? level;
-    public Player Player => level?.player;
+    public Level? Level => level;
+    public Player Player => level.Player;
     public State state = State.PLAYING;
     public GameStatistics Stats { get; private set; } = new GameStatistics();
 
@@ -41,17 +44,15 @@ class GameSession
         }
     }
 
-    private readonly IDataService _dataService;
-    private SaveData? _lastSaveData;
-    public List<GameStatistics> GetHighScores() => _lastSaveData?.HighScores ?? [];
+    private readonly IDataService dataService;
+    private SaveData? lastSaveData;
+    public List<GameStatistics> GetHighScores() => lastSaveData?.HighScores ?? [];
 
     public GameSession(IDataService dataService)
     {
-        _dataService = dataService;
+        this.dataService = dataService;
         state = State.MENU;
         level = null;
-
-        LoadHighScoresAsync();
 
         _mainMenu = new Menu(
             "==== S21 ROGUE GAME ====",
@@ -92,64 +93,6 @@ class GameSession
         );
     }
 
-    public Level? GetLevel()
-    {
-        return level;
-    }
-
-    private async void LoadHighScoresAsync()
-    {
-        var data = await _dataService.LoadAsync();
-        if (data != null)
-        {
-            _lastSaveData = data;
-            // TODO: restore active game
-        }
-        else
-        {
-            _lastSaveData = new SaveData();
-        }
-    }
-
-    private void RecordHighScore()
-    {
-        _lastSaveData ??= new SaveData();
-
-        // Adds current stats to history
-        _lastSaveData.HighScores.Add(Stats);
-
-        // Sorts by treasures collected (descending)
-        _lastSaveData.HighScores.Sort((a, b) => b.TreasuresCollected.CompareTo(a.TreasuresCollected));
-
-        // Keep only top 10
-        if (_lastSaveData.HighScores.Count > 10)
-            _lastSaveData.HighScores.RemoveAt(10);
-
-        // Save asynchronously
-        _dataService.SaveAsync(_lastSaveData);
-    }
-
-    private void SaveProgress()
-    {
-        if (_lastSaveData == null) _lastSaveData = new SaveData();
-
-        _lastSaveData.Floor = level.floor;
-        _lastSaveData.PlayerX = Player.position.X;
-        _lastSaveData.PlayerY = Player.position.Y;
-        _lastSaveData.CurrentHealth = Player.CurrentHealth;
-        _lastSaveData.MaxHealth = Player.MaxHealth;
-        _lastSaveData.Strength = Player.Strength;
-        _lastSaveData.Agility = Player.Agility;
-        _lastSaveData.Treasure = Player.GetBackpack().treasure;
-        _lastSaveData.CurrentRunStats = Stats;
-
-        // TODO: Save player and his inventory.
-        // TODO: Save a map of the level.
-
-        _dataService.SaveAsync(_lastSaveData).Wait();
-        GameLog.Add("Game progress saved.");
-    }
-
     public void Input(InputAction action, int? backpack_id = null)
     {
         switch (state)
@@ -184,7 +127,7 @@ class GameSession
         if (InputDirectionMap.TryGetValue(action, out Vector2i? dir))
         {
             backpack.Opened = false;
-            Vector2i new_pos = Player.position + dir;
+            Vector2i new_pos = Player.Position + dir;
 
             return MovePlayer(new_pos);
         }
@@ -229,12 +172,10 @@ class GameSession
     {
         if (action == InputAction.ESCAPE)
         {
-            RecordHighScore();
             state = State.EXITING;
         }
         else if (action == InputAction.RESTART)
         {
-            RecordHighScore();
             state = State.MENU;
             level = null;
         }
@@ -242,19 +183,21 @@ class GameSession
 
     private bool MovePlayer(Vector2i new_pos)
     {
+        dataService.SaveAsync(this);
+
         if (!level.IsPositionValid(new_pos)) return false;
         Entity? entity = level.GetEntityByPos(new_pos);
 
-        if (Player.position != new_pos)
+        if (Player.Position != new_pos)
             Stats.TilesTraversed++;
 
         if (entity == null)
-            Player.position = new_pos;
+            Player.Position = new_pos;
         else if (entity is Enemy enemy)
             OnEnemyTouched(enemy);
         else if (entity is Item item)
         {
-            Player.position = new_pos;
+            Player.Position = new_pos;
             OnItemTouched(item);
         }
         else if (entity is Door door)
@@ -265,7 +208,7 @@ class GameSession
                 return false;
             }
             if (door.Open(Player, level))
-                level.entities.Remove(door);
+                level.Entities.Remove(door);
         }
 
         level.UpdateVisibility();
@@ -282,7 +225,7 @@ class GameSession
         {
             int treasure = Random.Shared.Next(100, 1000);
             GameLog.Add($"{enemy.GetType().Name} dies! You get treasure worth {treasure}");
-            level.entities.Remove(enemy);
+            level.Entities.Remove(enemy);
             Player.GetBackpack().AddTreasure(treasure);
         }
     }
@@ -292,7 +235,7 @@ class GameSession
         if (Player.PickItem(item))
         {
             GameLog.Add($"You pick up a {item.name}");
-            level.entities.Remove(item);
+            level.Entities.Remove(item);
         }
         else
         {
@@ -302,21 +245,21 @@ class GameSession
 
     private void OnEnemyTurn()
     {
-        foreach (Enemy enemy in level.entities.FindAll(e => e is Enemy).Cast<Enemy>())
+        foreach (Enemy enemy in level.Entities.FindAll(e => e is Enemy).Cast<Enemy>())
         {
-            if (enemy.position.DistanceTo(Player.position) > enemy.hostility)
+            if (enemy.Position.DistanceTo(Player.Position) > enemy.hostility)
             {
                 enemy.MovePeacefully(level);
                 continue;
             }
-            List<Vector2i> path = PathFinder.FindPath(level, enemy.position, Player.position);
+            List<Vector2i> path = PathFinder.FindPath(level, enemy.Position, Player.Position);
             if (path.Count == 0)
             {
                 //no path to player
                 enemy.MovePeacefully(level);
                 continue;
             }
-            if (path[0] == Player.position)
+            if (path[0] == Player.Position)
             {
                 enemy.Attack(Player);
                 Stats.HitsTaken++;
@@ -328,17 +271,15 @@ class GameSession
                     return;
                 }
             }
-            else enemy.position = path[0];
+            else enemy.Position = path[0];
         }
     }
 
     public void OnLevelExited()
     {
-        SaveProgress();
-
-        level = new Level(level.floor + 1, Player);
-        if (level.floor > Stats.HighestLevelReached)
-            Stats.HighestLevelReached = level.floor;
+        level = new Level(level.Floor + 1, Player);
+        if (level.Floor > Stats.HighestLevelReached)
+            Stats.HighestLevelReached = level.Floor;
     }
 
 }

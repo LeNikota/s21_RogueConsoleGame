@@ -29,7 +29,7 @@ while (!shouldClose)
     if (game.state == GameSession.State.EXITING) break;
 
     if (game.state == GameSession.State.PLAYING || game.state == GameSession.State.PAUSED)
-        LevelRenderer.PrintLevel(game.GetLevel());
+        LevelRenderer.PrintLevel(game.Level);
 
     UIRenderer.PrintUI(game);
     NCurses.Refresh();

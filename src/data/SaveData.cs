@@ -1,6 +1,6 @@
 namespace domain;
 
-public class SaveData
+class SaveData
 {
     // Current Game State
     public int Floor { get; set; }

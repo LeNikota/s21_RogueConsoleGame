@@ -1,6 +1,6 @@
 namespace domain;
 
-public class GameStatistics
+class GameStatistics
 {
     public int TreasuresCollected { get; set; } = 0;
     public int HighestLevelReached { get; set; } = 1;

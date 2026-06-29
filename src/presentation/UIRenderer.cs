@@ -14,7 +14,7 @@ class UIRenderer
         {
             NCurses.MoveAddString(y++, x, $"{i + 1}) {backpack[i].name}");
         }
-        if (backpack.treasure > 0) NCurses.MoveAddString(y, x, $"{backpack.Count + 1}) Treasure worth {backpack.treasure}");
+        if (backpack.Treasure > 0) NCurses.MoveAddString(y, x, $"{backpack.Count + 1}) Treasure worth {backpack.Treasure}");
 
     }
 
@@ -77,7 +77,7 @@ class UIRenderer
 
     private static void PrintGameUI(GameSession game)
     {
-        if (game.GetLevel() == null) return;
+        if (game.Level == null) return;
 
         string log = GameLog.GetLog();
         if (log.Length > Level.WIDTH) log = log[..Level.WIDTH];
@@ -85,7 +85,7 @@ class UIRenderer
 
         Player p = game.Player;
         string weapon = p.GetWeapon() == null ? "None" : p.GetWeapon()!.name;
-        string stats = $"Lvl: {game.GetLevel().floor}, HP: {p.CurrentHealth}/{p.MaxHealth}, STR: {p.Strength}, AG: {p.Agility}, Wpn: {weapon}";
+        string stats = $"Lvl: {game.Level.Floor}, HP: {p.CurrentHealth}/{p.MaxHealth}, STR: {p.Strength}, AG: {p.Agility}, Wpn: {weapon}";
 
         if (stats.Length > Level.WIDTH) stats = stats[..Level.WIDTH];
         NCurses.MoveAddString(Level.HEIGHT + LevelRenderer.Y_OFFSET, 0, stats.PadRight(Level.WIDTH));

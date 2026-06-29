@@ -3,8 +3,8 @@ namespace domain
 {
     class Vector2i(int _x, int _y)
     {
-        public int X = _x;
-        public int Y = _y;
+        public int X {get; set;} = _x;
+        public int Y {get; set;} = _y;
 
         public static readonly Vector2i ZERO = new(0, 0);
         public static readonly Vector2i UP = new(0, -1);

@@ -5,6 +5,7 @@ class Player(int x = 0, int y = 0, GameStatistics? stats = null) : Character(x, 
 {
 
     readonly Backpack backpack = new();
+    public Backpack Backpack => backpack;
     readonly List<Elixir> ActiveElixirs = [];
     Weapon? CurrentWeapon = null;
 
@@ -36,8 +37,8 @@ class Player(int x = 0, int y = 0, GameStatistics? stats = null) : Character(x, 
         if (backpack[id] is not Weapon) return false;
         if (CurrentWeapon != null && !backpack.Add(CurrentWeapon))
         {
-            CurrentWeapon.position = position;
-            level.entities.Add(CurrentWeapon);
+            CurrentWeapon.Position = Position;
+            level.Entities.Add(CurrentWeapon);
         }
         CurrentWeapon = (Weapon)backpack[id];
         backpack.Remove(CurrentWeapon);

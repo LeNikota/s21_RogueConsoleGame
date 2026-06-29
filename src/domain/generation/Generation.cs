@@ -79,8 +79,8 @@ namespace domain.generation
 
             int player_room_index = Random.Shared.Next(ROOM_COUNT);
             var player_position = GetRandPosInRoom([player_room_index]);
-            player.position.X = player_position.X;
-            player.position.Y = player_position.Y;
+            player.Position.X = player_position.X;
+            player.Position.Y = player_position.Y;
             entities.Add(player);
 
             // TODO: place into separate functions
@@ -89,7 +89,7 @@ namespace domain.generation
             // item_num += floor;
 
             List<int> available_rooms = [.. Enumerable.Range(0, ROOM_COUNT).Where(r => r != player_room_index)];
-            entities.Add(new Door(0, 0, true) { position = GetRandPosInRoom(available_rooms) });
+            entities.Add(new Door(0, 0, true) { Position = GetRandPosInRoom(available_rooms) });
 
             for (int i = 0; i < enemy_num; i++)
             {
@@ -602,7 +602,7 @@ namespace domain.generation
             int bottom_right_y = upper_left_y + room.Size.Y - 2;
 
             int max_tries = (bottom_right_x - upper_left_x) * (bottom_right_y - upper_left_y);
-            HashSet<Vector2i> taken = [.. entities.Where(e => room.HasPoint(e.position)).Select(e => e.position)];
+            HashSet<Vector2i> taken = [.. entities.Where(e => room.HasPoint(e.Position)).Select(e => e.Position)];
 
             for (int i = 0; i < max_tries; i++)
             {

@@ -13,7 +13,7 @@ namespace domain
         public List<Item> List {
             get { return list; }
         }
-        public int treasure = 0;
+        public int Treasure {get; set;} = 0;
 
         public int Count { get {return list.Count;}}
 
@@ -30,7 +30,7 @@ namespace domain
             return true;
         }
 
-        public void AddTreasure(int _value) { treasure += _value; }
+        public void AddTreasure(int _value) { Treasure += _value; }
         public void Remove(Item i) => list.Remove(i);
 
         public IEnumerator<Item> GetEnumerator()
@@ -120,8 +120,8 @@ namespace domain
             {
                 case Action.DROP:
                     Item item = Player.GetBackpack()[id];
-                    item.position = Player.position;
-                    level.entities.Add(item);
+                    item.Position = Player.Position;
+                    level.Entities.Add(item);
                     Player.RemoveItem(item);
                     break;
                 case Action.WEAPON:

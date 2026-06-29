@@ -12,29 +12,44 @@ namespace domain
 
     class Level
     {
-        public const int WIDTH = 128; //used to resize the terminal
-        public const int HEIGHT = 32; //used to resize the terminal
-        public readonly bool[,] is_wall;
-        public readonly VisibilityState[,] visibility;
+        public const int WIDTH = 128; // used to resize the terminal
+        public const int HEIGHT = 32; // used to resize the terminal
+        public bool[,] IsWall { get; set; }
+        public VisibilityState[,] Visibility { get; set; }
 
-        public List<Entity> entities = [];
-        public readonly Player player; // lookup not to look for it all the time
-        public readonly int floor;
-        readonly Room[] rooms;
-        readonly List<List<Passage>> passages;
+        public List<Entity> Entities { get; set; } = [];
+        private Player? player;
+        public Player? Player
+        {
+            get => player;
+            set
+            {
+                if (player != null && Entities.Contains(player))
+                    Entities.Remove(player);
+
+                player = value;
+
+                if (player != null)
+                    Entities.Add(player);
+            }
+        }
+        
+        public int Floor { get; set; }
+        Room[] Rooms { get; set; }
+        List<List<Passage>> Passages { get; set; }
 
         public Level(int floor, Player player)
         {
-            this.floor = floor;
-            this.player = player;
+            Floor = floor;
+            Player = player;
 
-            (rooms, passages, entities, is_wall) = LevelGenerator.Generate(WIDTH, HEIGHT, floor, player);
+            (Rooms, Passages, Entities, IsWall) = LevelGenerator.Generate(WIDTH, HEIGHT, floor, player);
 
             // Initialize visibility to Unexplored
-            visibility = new VisibilityState[HEIGHT, WIDTH];
+            Visibility = new VisibilityState[HEIGHT, WIDTH];
             for (int y = 0; y < HEIGHT; y++)
                 for (int x = 0; x < WIDTH; x++)
-                    visibility[y, x] = VisibilityState.Unexplored;
+                    Visibility[y, x] = VisibilityState.Unexplored;
 
             // Initial reveal around player
             UpdateVisibility();
@@ -44,16 +59,16 @@ namespace domain
 
         public bool IsPositionValid(Vector2i pos)
         {
-            if (pos.X < 0 || pos.Y < 0 || pos.X >= WIDTH || pos.Y >= HEIGHT || is_wall[pos.Y, pos.X]) return false;
+            if (pos.X < 0 || pos.Y < 0 || pos.X >= WIDTH || pos.Y >= HEIGHT || IsWall[pos.Y, pos.X]) return false;
             return true;
         }
 
         public Entity? GetEntityByPos(Vector2i pos)
         {
             // if there are several entities in one spot, will return first fount entity
-            foreach (var e in entities)
+            foreach (var e in Entities)
             {
-                if (e.position == pos) return e;
+                if (e.Position == pos) return e;
             }
             return null;
 
@@ -71,13 +86,13 @@ namespace domain
             {
                 for (int x = 0; x < WIDTH; x++)
                 {
-                    if (visibility[y, x] == VisibilityState.Visible)
-                        visibility[y, x] = VisibilityState.Explored;
+                    if (Visibility[y, x] == VisibilityState.Visible)
+                        Visibility[y, x] = VisibilityState.Explored;
                 }
             }
 
-            int px = player.position.X;
-            int py = player.position.Y;
+            int px = Player.Position.X;
+            int py = Player.Position.Y;
 
             for (int y = py - VIEW_RADIUS; y <= py + VIEW_RADIUS; y++)
             {
@@ -95,7 +110,7 @@ namespace domain
             }
 
             // Player always sees himself
-            visibility[py, px] = VisibilityState.Visible;
+            Visibility[py, px] = VisibilityState.Visible;
         }
 
         /// <summary>
@@ -128,14 +143,14 @@ namespace domain
                 // The point is reached, there is a direct line of sight to the point
                 if (x == x1 && y == y1)
                 {
-                    visibility[y, x] = VisibilityState.Visible;
+                    Visibility[y, x] = VisibilityState.Visible;
                     return;
                 }
 
                 // There is a wall blocking line of sight
-                if (is_wall[y, x])
+                if (IsWall[y, x])
                 {
-                    visibility[y, x] = VisibilityState.Visible;
+                    Visibility[y, x] = VisibilityState.Visible;
                     return;
                 }
 

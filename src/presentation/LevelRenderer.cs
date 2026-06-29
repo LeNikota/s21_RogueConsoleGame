@@ -52,8 +52,8 @@ class LevelRenderer
 
     public static void PrintLevel(Level level)
     {
-        bool[,] is_wall = level.is_wall;
-        VisibilityState[,] visibility = level.visibility; // NEW
+        bool[,] is_wall = level.IsWall;
+        VisibilityState[,] visibility = level.Visibility; // NEW
         int width = Level.WIDTH;
         int height = Level.HEIGHT;
 
@@ -113,10 +113,10 @@ class LevelRenderer
         }
 
         // Render Entities ONLY if they are in Visible tiles
-        foreach (var entity in level.entities)
+        foreach (var entity in level.Entities)
         {
             // Check if the entity's position is currently visible
-            if (visibility[entity.position.Y, entity.position.X] != VisibilityState.Visible)
+            if (visibility[entity.Position.Y, entity.Position.X] != VisibilityState.Visible)
                 continue;
 
             short pair = 0;
@@ -126,7 +126,7 @@ class LevelRenderer
             }
 
             NCurses.AttributeSet(NCurses.ColorPair(pair));
-            NCurses.MoveAddChar(entity.position.Y + Y_OFFSET, entity.position.X, entity.icon);
+            NCurses.MoveAddChar(entity.Position.Y + Y_OFFSET, entity.Position.X, entity.Icon);
         }
 
         NCurses.AttributeSet(NCurses.ColorPair(0));
