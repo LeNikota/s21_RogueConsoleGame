@@ -12,7 +12,7 @@ class UIRenderer
 
         for (int i = 0; i < backpack.Count; i++)
         {
-            NCurses.MoveAddString(y++, x, $"{i + 1}) {backpack[i].name}");
+            NCurses.MoveAddString(y++, x, $"{i + 1}) {backpack[i].Name}");
         }
         if (backpack.Treasure > 0) NCurses.MoveAddString(y, x, $"{backpack.Count + 1}) Treasure worth {backpack.Treasure}");
 
@@ -84,7 +84,7 @@ class UIRenderer
         NCurses.MoveAddString(0, 0, log.PadRight(Level.WIDTH));
 
         Player p = game.Player;
-        string weapon = p.GetWeapon() == null ? "None" : p.GetWeapon()!.name;
+        string weapon = p.GetWeapon() == null ? "None" : p.GetWeapon()!.Name;
         string stats = $"Lvl: {game.Level.Floor}, HP: {p.CurrentHealth}/{p.MaxHealth}, STR: {p.Strength}, AG: {p.Agility}, Wpn: {weapon}";
 
         if (stats.Length > Level.WIDTH) stats = stats[..Level.WIDTH];
@@ -125,11 +125,11 @@ class UIRenderer
         y += 2;
         NCurses.MoveAddString(y++, x, "=== HIGH SCORES (Top Treasures) ===");
 
-        var scores = game.GetHighScores();
-        for (int i = 0; i < Math.Min(scores.Count, 10); i++)
-        {
-            NCurses.MoveAddString(y++, x, $"{i + 1}. Lvl: {scores[i].HighestLevelReached}, Gold: {scores[i].TreasuresCollected}");
-        }
+        // var scores = game.GetHighScores();
+        // for (int i = 0; i < Math.Min(scores.Count, 10); i++)
+        // {
+        //     NCurses.MoveAddString(y++, x, $"{i + 1}. Lvl: {scores[i].HighestLevelReached}, Gold: {scores[i].TreasuresCollected}");
+        // }
 
         NCurses.MoveAddString(NCurses.Lines - 2, 2, "Press any key to return...");
         NCurses.Refresh();

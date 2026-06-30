@@ -93,19 +93,19 @@ namespace domain
                 {
                     case Weapon w:
                         Player.SetWeapon(id, level);
-                        GameLog.Add($"{w.name} is equipped.");
+                        GameLog.Add($"{w.Name} is equipped.");
                         break;
                     case Food f:
                         Player.Eat(id);
-                        GameLog.Add($"You eat the {f.name}.");
+                        GameLog.Add($"You eat the {f.Name}.");
                         break;
                     case Elixir e:
                         Player.Drink(id);
-                        GameLog.Add($"You drink the {e.name}.");
+                        GameLog.Add($"You drink the {e.Name}.");
                         break;
                     case Scroll s:
                         Player.Read(id);
-                        GameLog.Add($"You read the {s.name}.");
+                        GameLog.Add($"You read the {s.Name}.");
                         break;
                     default:
                         GameLog.Add($"What can you do with this?");
@@ -114,7 +114,7 @@ namespace domain
                 return true;
             }
 
-            string n = Player.GetBackpack()[id].name;
+            string n = Player.GetBackpack()[id].Name;
             //classic action-based use
             switch(action) 
             {

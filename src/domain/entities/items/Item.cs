@@ -1,19 +1,37 @@
-namespace domain
+using System.Text.Json.Serialization;
+
+namespace domain;
+
+[JsonDerivedType(typeof(Weapon))]
+[JsonDerivedType(typeof(Food))]
+[JsonDerivedType(typeof(Scroll))]
+[JsonDerivedType(typeof(Elixir))]
+[JsonDerivedType(typeof(Key))]
+
+class Item : Entity
 {
-class Item(int x, int y, uint _icon, string _name, Color color = Color.None) : Entity(x, y, _icon, color)
-{
-    public readonly string name = _name; //to print in the inventory
+    public string Name { get; set; } = "";
+
+    public Item() : base() { }
+
+    public Item(int x, int y, uint _icon, string _name, Color color = Color.None)
+        : base(x, y, _icon, color)
+    {
+        Name = _name;
+    }
 
     public static Item GetRandomItem(Vector2i? pos = null)
     {
-        return Random.Shared.Next(0, 3) switch
+        int x = pos?.X ?? 0;
+        int y = pos?.Y ?? 0;
+
+        return Random.Shared.Next(0, 4) switch
         {
-            0 => new Weapon(pos is null ? 0 : pos.X, pos is null ? 0 : pos.Y),
-            1 => new Food(pos is null ? 0 : pos.X, pos is null ? 0 : pos.Y),
-            2 => new Scroll(pos is null ? 0 : pos.X, pos is null ? 0 : pos.Y),
-            3 => new Elixir(pos is null ? 0 : pos.X, pos is null ? 0 : pos.Y),
-            _ => new Food(pos is null ? 0 : pos.X, pos is null ? 0 : pos.Y),
+            0 => new Weapon(x, y),
+            1 => new Food(x, y),
+            2 => new Scroll(x, y),
+            3 => new Elixir(x, y),
+            _ => new Food(x, y),
         };
     }
-}
 }

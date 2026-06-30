@@ -46,7 +46,7 @@ class GameSession
 
     private readonly IDataService dataService;
     private SaveData? lastSaveData;
-    public List<GameStatistics> GetHighScores() => lastSaveData?.HighScores ?? [];
+    // public List<GameStatistics> GetHighScores() => lastSaveData?.HighScores ?? [];
 
     public GameSession(IDataService dataService)
     {
@@ -58,16 +58,20 @@ class GameSession
             "==== S21 ROGUE GAME ====",
             [
                 ("Start New Game", () => {
-                        level = new Level(1, new Player());
-                        state = State.PLAYING;
-                        GameLog.Log("Welcome to s21_rogue! Use WASD to move.");
-                    }),
-                    ("View Statistics", () => {
-                        state = State.STATS;
-                    }),
-                    ("Exit", () => {
-                        state = State.EXITING;
-                    })
+                    Stats.Reset(); // Reset stats for new game
+                    level = new Level(1, new Player());
+                    state = State.PLAYING;
+                    GameLog.Log("Welcome to s21_rogue! Use WASD to move.");
+                }),
+                ("Continue Game", () => {
+                    // LoadSavedGame(); 
+                }),
+                ("View Statistics", () => {
+                    state = State.STATS;
+                }),
+                ("Exit", () => {
+                    state = State.EXITING;
+                })
             ]
         );
 
@@ -75,20 +79,20 @@ class GameSession
             "PAUSED",
             [
                 ("Resume", () => {
-                        state = State.PLAYING;
-                    }),
-                    ("Restart", () => {
-                        state = State.PLAYING;
-                        level = new Level(1, new Player());
-                    }),
-                    ("View Statistics", () => {
-                        state = State.STATS;
-                    }),
-                    ("Main Menu", () => {
-                        state = State.MENU;
-                        level = null;
-                        _mainMenu.Reset();
-                    })
+                    state = State.PLAYING;
+                }),
+                ("Restart", () => {
+                    state = State.PLAYING;
+                    level = new Level(1, new Player());
+                }),
+                ("View Statistics", () => {
+                    state = State.STATS;
+                }),
+                ("Main Menu", () => {
+                    state = State.MENU;
+                    level = null;
+                    _mainMenu.Reset();
+                })
             ]
         );
     }
@@ -234,7 +238,7 @@ class GameSession
     {
         if (Player.PickItem(item))
         {
-            GameLog.Add($"You pick up a {item.name}");
+            GameLog.Add($"You pick up a {item.Name}");
             level.Entities.Remove(item);
         }
         else
@@ -247,7 +251,7 @@ class GameSession
     {
         foreach (Enemy enemy in level.Entities.FindAll(e => e is Enemy).Cast<Enemy>())
         {
-            if (enemy.Position.DistanceTo(Player.Position) > enemy.hostility)
+            if (enemy.Position.DistanceTo(Player.Position) > enemy.Hostility)
             {
                 enemy.MovePeacefully(level);
                 continue;

@@ -1,21 +1,15 @@
-namespace domain;
+using domain;
+namespace data;
 
 class SaveData
 {
-    // Current Game State
+    public GameStatistics Statistics { get; set; } = new();
     public int Floor { get; set; }
-    public int PlayerX { get; set; }
-    public int PlayerY { get; set; }
-    public int CurrentHealth { get; set; }
-    public int MaxHealth { get; set; }
-    public int Strength { get; set; }
-    public int Agility { get; set; }
-    public int Treasure { get; set; }
-    public List<string> InventoryNames { get; set; } = new();
-
-    // Statistics for current run
-    public GameStatistics CurrentRunStats { get; set; } = new GameStatistics();
-
-    // History of all runs (High Scores)
-    public List<GameStatistics> HighScores { get; set; } = [];
+    public Player? Player { get; set; }
+    public List<Entity>? Entities { get; set; }
+    
+    // Changed from bool[,] to List<bool>
+    public List<bool>? WallsFlat { get; set; }
+    // Changed from byte[,] to List<byte>
+    public List<byte>? VisibilityFlat { get; set; }
 }
