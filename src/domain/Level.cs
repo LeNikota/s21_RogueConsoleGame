@@ -33,7 +33,7 @@ namespace domain
                     Entities.Add(player);
             }
         }
-        
+
         public int Floor { get; set; }
         Room[] Rooms { get; set; }
         List<List<Passage>> Passages { get; set; }
@@ -55,6 +55,20 @@ namespace domain
             UpdateVisibility();
 
             if (floor > 1) GameLog.Log($"Welcome to floor {floor}!");
+        }
+
+        public Level(int floor, Player player, bool[,] isWall, VisibilityState[,] visibility, List<Entity> entities)
+        {
+            Floor = floor;
+            IsWall = isWall;
+            Visibility = visibility;
+
+            Entities = entities ?? [];
+            if (!Entities.Contains(player))
+                Player = player;
+
+            Rooms = new Room[9];
+            Passages = [];
         }
 
         public bool IsPositionValid(Vector2i pos)

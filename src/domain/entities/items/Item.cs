@@ -2,11 +2,11 @@ using System.Text.Json.Serialization;
 
 namespace domain;
 
-[JsonDerivedType(typeof(Weapon))]
-[JsonDerivedType(typeof(Food))]
-[JsonDerivedType(typeof(Scroll))]
-[JsonDerivedType(typeof(Elixir))]
-[JsonDerivedType(typeof(Key))]
+[JsonDerivedType(typeof(Weapon), "weapon")]
+[JsonDerivedType(typeof(Food), "food")]
+[JsonDerivedType(typeof(Scroll), "scroll")]
+[JsonDerivedType(typeof(Elixir), "elixir")]
+[JsonDerivedType(typeof(Key), "key")]
 
 class Item : Entity
 {

@@ -64,7 +64,7 @@ class GameSession
                     GameLog.Log("Welcome to s21_rogue! Use WASD to move.");
                 }),
                 ("Continue Game", () => {
-                    // LoadSavedGame(); 
+                    LoadSavedGame();
                 }),
                 ("View Statistics", () => {
                     state = State.STATS;
@@ -90,11 +90,35 @@ class GameSession
                 }),
                 ("Main Menu", () => {
                     state = State.MENU;
+                    dataService.SaveAsync(this);
                     level = null;
                     _mainMenu.Reset();
                 })
             ]
         );
+    }
+
+    private async void LoadSavedGame()
+    {
+        var data = await dataService.LoadAsync();
+        if (data.HasValue)
+        {
+            var (stats, level) = data.Value;
+            this.Stats = stats;
+            this.level = level;
+            this.state = State.PLAYING;
+            GameLog.Log("Game loaded successfully.");
+        }
+        else
+        {
+            state = State.MENU;
+        }
+    }
+
+    private void SaveProgress()
+    {
+       dataService.SaveAsync(this);
+        GameLog.Add("Game progress saved.");
     }
 
     public void Input(InputAction action, int? backpack_id = null)
@@ -176,10 +200,12 @@ class GameSession
     {
         if (action == InputAction.ESCAPE)
         {
+            // SaveScore();
             state = State.EXITING;
         }
         else if (action == InputAction.RESTART)
         {
+            // SaveScore();
             state = State.MENU;
             level = null;
         }
@@ -187,8 +213,6 @@ class GameSession
 
     private bool MovePlayer(Vector2i new_pos)
     {
-        dataService.SaveAsync(this);
-
         if (!level.IsPositionValid(new_pos)) return false;
         Entity? entity = level.GetEntityByPos(new_pos);
 

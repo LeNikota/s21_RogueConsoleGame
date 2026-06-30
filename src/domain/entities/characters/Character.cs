@@ -2,9 +2,8 @@ using System.Text.Json.Serialization;
 
 namespace domain;
 
-[JsonDerivedType(typeof(Player))]
-[JsonDerivedType(typeof(Enemy))]
-
+[JsonDerivedType(typeof(Player), "player")]
+[JsonDerivedType(typeof(Enemy), "enemy")]
 class Character : Entity
 {
     public enum Stat { Strength, Agility, MaxHealth }

@@ -23,35 +23,19 @@ class JsonDataService(string filePath = "game_save.json") : IDataService
             string json = await File.ReadAllTextAsync(filePath);
             var saveData = JsonSerializer.Deserialize<SaveData>(json, options);
 
-            if (saveData == null || saveData.Player == null || saveData.WallsFlat == null)
+            if (saveData == null || saveData.Player == null || saveData.WallsFlat == null || saveData.VisibilityFlat == null)
                 return null;
 
             bool[,] walls = ConvertFlatTo2DBool(saveData.WallsFlat, Level.HEIGHT, Level.WIDTH);
+            byte[,] visibilityBytes = ConvertFlatTo2DByte(saveData.VisibilityFlat, Level.HEIGHT, Level.WIDTH);
+            VisibilityState[,] visibility = new VisibilityState[Level.HEIGHT, Level.WIDTH];
+            for (int y = 0; y < Level.HEIGHT; y++)
+                for (int x = 0; x < Level.WIDTH; x++)
+                    visibility[y, x] = (VisibilityState)visibilityBytes[y, x];
 
-            var level = new Level(saveData.Floor, saveData.Player)
-            {
-                IsWall = walls
-            };
 
-            if (saveData.VisibilityFlat != null)
-            {
-                byte[,] visibilityBytes = ConvertFlatTo2DByte(saveData.VisibilityFlat, Level.HEIGHT, Level.WIDTH);
-                level.Visibility = new VisibilityState[Level.HEIGHT, Level.WIDTH];
-                for (int y = 0; y < Level.HEIGHT; y++)
-                    for (int x = 0; x < Level.WIDTH; x++)
-                        level.Visibility[y, x] = (VisibilityState)visibilityBytes[y, x];
-            }
+            var level = new Level(saveData.Floor, saveData.Player, walls, visibility, saveData.Entities ?? []);
 
-            if (saveData.Entities != null)
-            {
-                foreach (var entity in saveData.Entities)
-                {
-                    if (entity is Player) continue;
-                    level.Entities.Add(entity);
-                }
-            }
-
-            level.Player ??= saveData.Player;
             return (saveData.Statistics, level);
         }
         catch (Exception ex)
@@ -70,10 +54,10 @@ class JsonDataService(string filePath = "game_save.json") : IDataService
             Statistics = gameSession.Stats,
             Floor = gameSession.Level.Floor,
             Player = gameSession.Player,
+            Entities = gameSession.Level.Entities.Where(e => e is not Player).ToList(),
 
             // Convert 2D arrays to flat lists for JSON compatibility
             WallsFlat = Convert2DToFlat(gameSession.Level.IsWall),
-            Entities = gameSession.Level.Entities.Where(e => e is not Player).ToList(),
             VisibilityFlat = Convert2DToFlat(ConvertVisibilityToByte(gameSession.Level.Visibility))
         };
 

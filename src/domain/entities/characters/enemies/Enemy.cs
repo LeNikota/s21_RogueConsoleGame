@@ -2,11 +2,11 @@ using System.Text.Json.Serialization;
 
 namespace domain;
 
-[JsonDerivedType(typeof(Zombie))]
-[JsonDerivedType(typeof(Vampire))]
-[JsonDerivedType(typeof(Ghost))]
-[JsonDerivedType(typeof(Ogre))]
-[JsonDerivedType(typeof(SnakeMage))]
+[JsonDerivedType(typeof(Zombie), "zombie")]
+[JsonDerivedType(typeof(Vampire), "vampire")]
+[JsonDerivedType(typeof(Ghost), "ghost")]
+[JsonDerivedType(typeof(Ogre), "ogre")]
+[JsonDerivedType(typeof(SnakeMage), "snakeMage")]
 
 class Enemy : Character
 {

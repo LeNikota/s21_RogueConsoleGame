@@ -5,18 +5,23 @@ namespace domain;
 enum Color { None, White, Red, Green, Blue, Yellow, Cyan, Magenta, Black }
 
 
-[JsonDerivedType(typeof(Player))]
-[JsonDerivedType(typeof(Zombie))]
-[JsonDerivedType(typeof(Vampire))]
-[JsonDerivedType(typeof(Ghost))]
-[JsonDerivedType(typeof(Ogre))]
-[JsonDerivedType(typeof(SnakeMage))]
-[JsonDerivedType(typeof(Weapon))]
-[JsonDerivedType(typeof(Food))]
-[JsonDerivedType(typeof(Scroll))]
-[JsonDerivedType(typeof(Elixir))]
-[JsonDerivedType(typeof(Key))]
-[JsonDerivedType(typeof(Door))]
+[JsonDerivedType(typeof(Player), "player")]
+[JsonDerivedType(typeof(Enemy), "enemy")]
+[JsonDerivedType(typeof(Zombie), "zombie")]
+[JsonDerivedType(typeof(Vampire), "vampire")]
+[JsonDerivedType(typeof(Ghost), "ghost")]
+[JsonDerivedType(typeof(Ogre), "ogre")]
+[JsonDerivedType(typeof(SnakeMage), "snakeMage")]
+[JsonDerivedType(typeof(Weapon), "weapon")]
+[JsonDerivedType(typeof(Food), "food")]
+[JsonDerivedType(typeof(Scroll), "scroll")]
+[JsonDerivedType(typeof(Elixir), "elixir")]
+[JsonDerivedType(typeof(Key), "key")]
+
+[JsonDerivedType(typeof(Character), "character")]
+[JsonDerivedType(typeof(Item), "item")]
+[JsonDerivedType(typeof(Door), "door")]
+
 class Entity
 {
     public Vector2i Position { get; set; }
