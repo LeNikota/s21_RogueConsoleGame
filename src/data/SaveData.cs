@@ -12,4 +12,7 @@ class SaveData
     public List<bool>? WallsFlat { get; set; }
     // Changed from byte[,] to List<byte>
     public List<byte>? VisibilityFlat { get; set; }
+
+    public List<GameStatistics> Scoreboard { get; set; } = [];
+
 }

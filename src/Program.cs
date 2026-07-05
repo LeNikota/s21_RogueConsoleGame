@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using domain;
 using data;
+using presentation;
 
 ResizeTerminal();
 nint screen = NCurses.InitScreen();
@@ -20,32 +21,114 @@ LevelRenderer.InitColors();
 NCurses.Keypad(screen, true);
 NCurses.NoEcho();
 
+// Tells ncurses to exit the main loop
 bool shouldClose = false;
+
 IDataService dataService = new JsonDataService();
-GameSession game = new(dataService);
+var savedGame = await dataService.LoadGameAsync();
+// (GameStatistics stats, Level level) = await dataService.LoadGameAsync();
+List<GameStatistics>? scoreboard = await dataService.LoadScoreboardAsync();
+
+Window currentWindow;
+var mainMenuWindow = new MenuWindow("==== S21 ROGUE GAME ====");
+var pauseMenuWindow = new MenuWindow();
+var gameWindow = new GameWindow();
+// var statisticWindow = new StatisticsWindow(scoreboard);
+
+gameWindow.AddInput(InputAction.ESCAPE, () => currentWindow = pauseMenuWindow);
+
+mainMenuWindow.AddItem(
+    "Start New Game", () =>
+    {
+        gameWindow.GameSession = new GameSession();
+        currentWindow = gameWindow;
+
+        // statisticWindow.GameSession = gameWindow.GameSession;
+
+
+        GameLog.Log("Welcome to s21_rogue! Use WASD to move.");
+    }
+);
+if (savedGame.HasValue)
+{
+    mainMenuWindow.AddItem(
+        "Continue Game", () =>
+        {
+            var (stats, level) = savedGame.Value;
+            gameWindow.GameSession = new GameSession(stats, level);
+            currentWindow = gameWindow;
+            GameLog.Log("Welcome to s21_rogue! Use WASD to move.");
+        }
+    );
+}
+// mainMenuWindow.AddItem("View Statistics", () => currentWindow = statisticWindow );
+mainMenuWindow.AddItem(
+    "Exit", () =>
+    {
+        shouldClose = true;
+    }
+);
+
+pauseMenuWindow.AddInput(InputAction.ESCAPE, () => currentWindow = gameWindow);
+pauseMenuWindow.AddItem("Continue", () => currentWindow = gameWindow);
+pauseMenuWindow.AddItem("Restart", () =>
+{
+    var stats = gameWindow.GameSession.Stats;
+    var level = gameWindow.GameSession.Level;
+    dataService.SaveGameAsync(stats, level);
+
+    gameWindow.GameSession = new();
+    currentWindow = gameWindow;
+});
+// pauseMenuWindow.AddItem( "View Statistics", () => currentWindow = statisticWindow );
+pauseMenuWindow.AddItem(
+    "Main menu", () =>
+    {
+        var stats = gameWindow.GameSession.Stats;
+        var level = gameWindow.GameSession.Level;
+        dataService.SaveGameAsync(stats, level);
+        savedGame = (stats, level);
+
+        currentWindow = mainMenuWindow;
+    }
+);
+pauseMenuWindow.AddItem(
+    "Exit game", () =>
+    {
+        var stats = gameWindow.GameSession.Stats;
+        var level = gameWindow.GameSession.Level;
+        dataService.SaveGameAsync(stats, level);
+
+        // needs to update scoreboard
+
+        shouldClose = true;
+    }
+);
+
+currentWindow = mainMenuWindow;
+
 
 while (!shouldClose)
 {
-    if (game.state == GameSession.State.EXITING) break;
+    if (currentWindow is GameWindow)
+        LevelRenderer.PrintLevel(gameWindow.GameSession.Level);
 
-    if (game.state == GameSession.State.PLAYING || game.state == GameSession.State.PAUSED)
-        LevelRenderer.PrintLevel(game.Level);
-
-    UIRenderer.PrintUI(game);
+    UIRenderer.PrintUI(currentWindow);
     NCurses.Refresh();
 
-    Input(game);
+    Input(currentWindow);
 }
 NCurses.EndWin();
 
 
-void Input(GameSession game)
+static void Input(Window window)
 {
     int key = NCurses.GetChar();
 
     if (key >= '0' && key <= '9')
     {
-        game.Input(GameSession.InputAction.NONE, key - 48);
+        // window.Input(InputAction.NONE, key - 48);
+        window.Input(InputAction.NONE);
         return;
     }
     switch (key)
@@ -53,59 +136,59 @@ void Input(GameSession game)
         case 'w':
         case 'W':
         case CursesKey.UP:
-            game.Input(GameSession.InputAction.UP);
+            window.Input(InputAction.UP);
             break;
         case 's':
         case 'S':
         case CursesKey.DOWN:
-            game.Input(GameSession.InputAction.DOWN);
+            window.Input(InputAction.DOWN);
             break;
         case 'a':
         case 'A':
         case CursesKey.LEFT:
-            game.Input(GameSession.InputAction.LEFT);
+            window.Input(InputAction.LEFT);
             break;
         case 'd':
         case 'D':
         case CursesKey.RIGHT:
-            game.Input(GameSession.InputAction.RIGHT);
+            window.Input(InputAction.RIGHT);
             break;
         case 'i':
         case 'I':
         case '\t':
-            game.Input(GameSession.InputAction.BACKPACK);
+            window.Input(InputAction.BACKPACK);
             break;
         case 'h':
         case 'H':
-            game.Input(GameSession.InputAction.WEAPON);
+            window.Input(InputAction.WEAPON);
             break;
         case 'j':
         case 'J':
-            game.Input(GameSession.InputAction.FOOD);
+            window.Input(InputAction.FOOD);
             break;
         case 'k':
         case 'K':
-            game.Input(GameSession.InputAction.ELIXIR);
+            window.Input(InputAction.ELIXIR);
             break;
         case 'e':
         case 'E':
-            game.Input(GameSession.InputAction.SCROLL);
+            window.Input(InputAction.SCROLL);
             break;
         case 't':
         case 'T':
-            game.Input(GameSession.InputAction.DROP);
+            window.Input(InputAction.DROP);
             break;
         case 'r':
         case 'R':
-            game.Input(GameSession.InputAction.RESTART);
+            window.Input(InputAction.RESTART);
             break;
         case '\n':
         case '\r':
         case CursesKey.ENTER:
-            game.Input(GameSession.InputAction.ENTER);
+            window.Input(InputAction.ENTER);
             break;
         case CursesKey.ESC:
-            game.Input(GameSession.InputAction.ESCAPE);
+            window.Input(InputAction.ESCAPE);
             break;
         default:
             //NCurses.MoveAddString(0, 0, "Unknown input");

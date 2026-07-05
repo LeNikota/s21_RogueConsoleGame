@@ -2,6 +2,7 @@ namespace domain;
 
 class GameStatistics
 {
+    public int Id { get; set; } = 0;
     public int TreasuresCollected { get; set; } = 0;
     public int HighestLevelReached { get; set; } = 1;
     public int EnemiesDefeated { get; set; } = 0;

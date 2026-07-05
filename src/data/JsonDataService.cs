@@ -4,9 +4,10 @@ using domain;
 
 namespace data;
 
-class JsonDataService(string filePath = "game_save.json") : IDataService
+class JsonDataService(string gameSaveFilePath = "game_save.json") : IDataService
 {
-    private readonly string filePath = filePath;
+    private readonly string gameSaveFilePath = gameSaveFilePath;
+    private readonly string scoreboardFilePath = "scoreboard";
 
     private readonly JsonSerializerOptions options = new()
     {
@@ -15,12 +16,12 @@ class JsonDataService(string filePath = "game_save.json") : IDataService
         IncludeFields = true,
     };
 
-    public async Task<(GameStatistics, Level)?> LoadAsync()
+    public async Task<(GameStatistics, Level)?> LoadGameAsync()
     {
-        if (!File.Exists(filePath)) return null;
+        if (!File.Exists(gameSaveFilePath)) return null;
         try
         {
-            string json = await File.ReadAllTextAsync(filePath);
+            string json = await File.ReadAllTextAsync(gameSaveFilePath);
             var saveData = JsonSerializer.Deserialize<SaveData>(json, options);
 
             if (saveData == null || saveData.Player == null || saveData.WallsFlat == null || saveData.VisibilityFlat == null)
@@ -45,26 +46,62 @@ class JsonDataService(string filePath = "game_save.json") : IDataService
         }
     }
 
-    public async Task SaveAsync(GameSession gameSession)
+    public async Task SaveGameAsync(GameStatistics stats, Level level)
     {
-        if (gameSession.Level == null || gameSession.Player == null) return;
+        if (level == null || level.Player == null) return;
 
         var saveData = new SaveData
         {
-            Statistics = gameSession.Stats,
-            Floor = gameSession.Level.Floor,
-            Player = gameSession.Player,
-            Entities = gameSession.Level.Entities.Where(e => e is not Player).ToList(),
+            Statistics = stats,
+            Floor = level.Floor,
+            Player = level.Player,
+            Entities = level.Entities.Where(e => e is not Player).ToList(),
 
             // Convert 2D arrays to flat lists for JSON compatibility
-            WallsFlat = Convert2DToFlat(gameSession.Level.IsWall),
-            VisibilityFlat = Convert2DToFlat(ConvertVisibilityToByte(gameSession.Level.Visibility))
+            WallsFlat = Convert2DToFlat(level.IsWall),
+            VisibilityFlat = Convert2DToFlat(ConvertVisibilityToByte(level.Visibility))
         };
 
         try
         {
             string json = JsonSerializer.Serialize(saveData, options);
-            await File.WriteAllTextAsync(filePath, json);
+            await File.WriteAllTextAsync(gameSaveFilePath, json);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving game: {ex.Message}");
+        }
+    }
+
+    public async Task<List<GameStatistics>?> LoadScoreboardAsync()
+    {
+        if (!File.Exists(scoreboardFilePath)) return [];
+
+        try
+        {
+            string json = await File.ReadAllTextAsync(scoreboardFilePath);
+            var scoreboard = JsonSerializer.Deserialize<List<GameStatistics>>(json, options);
+
+            if (scoreboard == null)
+                return [];
+
+            return scoreboard;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading save: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task SaveScoreboardAsync(List<GameStatistics> scoreboard)
+    {
+        if (scoreboard == null) return;
+
+        try
+        {
+            var json = JsonSerializer.Serialize(scoreboard, options);
+            await File.WriteAllTextAsync(scoreboardFilePath, json);
         }
         catch (Exception ex)
         {

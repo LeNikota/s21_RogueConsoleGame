@@ -1,10 +1,12 @@
 using data;
+using domain.generation;
 
 namespace domain;
 
+enum InputAction { NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, ENTER, BACKPACK, DROP, WEAPON, FOOD, ELIXIR, SCROLL, RESTART };
+
 class GameSession
 {
-    public enum InputAction { NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, ENTER, BACKPACK, DROP, WEAPON, FOOD, ELIXIR, SCROLL, RESTART };
     public enum State { MENU, PLAYING, OVER, EXITING, PAUSED, STATS };
     public readonly Dictionary<InputAction, Vector2i> InputDirectionMap = new()
         {
@@ -23,126 +25,73 @@ class GameSession
             {InputAction.SCROLL, Backpack.Action.SCROLL}
         };
 
-    private Level? level;
-    public Level? Level => level;
+    private Level level;
+    public Level Level => level;
     public Player Player => level.Player;
     public State state = State.PLAYING;
-    public GameStatistics Stats { get; private set; } = new GameStatistics();
+    public GameStatistics Stats { get; private set; }
+    public List<GameStatistics>? Scoreboard { get; protected set; }
 
-    private Menu _mainMenu;
-    private Menu _pauseMenu;
-    public Menu? CurrentMenu
+    public GameSession(/*IDataService dataService*/)
     {
-        get
-        {
-            return state switch
-            {
-                State.MENU => _mainMenu,
-                State.PAUSED => _pauseMenu,
-                _ => null
-            };
-        }
+        Stats = new GameStatistics();
+        level = new Level(1, new Player());
+        state = State.PLAYING;
     }
 
-    private readonly IDataService dataService;
-    private SaveData? lastSaveData;
-    // public List<GameStatistics> GetHighScores() => lastSaveData?.HighScores ?? [];
-
-    public GameSession(IDataService dataService)
+    public GameSession(GameStatistics stats, Level level)
     {
-        this.dataService = dataService;
-        state = State.MENU;
-        level = null;
-
-        _mainMenu = new Menu(
-            "==== S21 ROGUE GAME ====",
-            [
-                ("Start New Game", () => {
-                    Stats.Reset(); // Reset stats for new game
-                    level = new Level(1, new Player());
-                    state = State.PLAYING;
-                    GameLog.Log("Welcome to s21_rogue! Use WASD to move.");
-                }),
-                ("Continue Game", () => {
-                    LoadSavedGame();
-                }),
-                ("View Statistics", () => {
-                    state = State.STATS;
-                }),
-                ("Exit", () => {
-                    state = State.EXITING;
-                })
-            ]
-        );
-
-        _pauseMenu = new Menu(
-            "PAUSED",
-            [
-                ("Resume", () => {
-                    state = State.PLAYING;
-                }),
-                ("Restart", () => {
-                    state = State.PLAYING;
-                    level = new Level(1, new Player());
-                }),
-                ("View Statistics", () => {
-                    state = State.STATS;
-                }),
-                ("Main Menu", () => {
-                    state = State.MENU;
-                    dataService.SaveAsync(this);
-                    level = null;
-                    _mainMenu.Reset();
-                })
-            ]
-        );
+        Stats = stats;
+        this.level = level;
+        state = State.PLAYING;
     }
 
-    private async void LoadSavedGame()
-    {
-        var data = await dataService.LoadAsync();
-        if (data.HasValue)
-        {
-            var (stats, level) = data.Value;
-            this.Stats = stats;
-            this.level = level;
-            this.state = State.PLAYING;
-            GameLog.Log("Game loaded successfully.");
-        }
-        else
-        {
-            state = State.MENU;
-        }
-    }
+    // private async void LoadSavedGame()
+    // {
+    //     var data = await dataService.LoadGameAsync();
 
-    private void SaveProgress()
-    {
-       dataService.SaveAsync(this);
-        GameLog.Add("Game progress saved.");
-    }
+    //     if (data.HasValue)
+    //     {
+    //         var (stats, level) = data.Value;
+    //         this.Stats = stats;
+    //         this.level = level;
+    //         this.state = State.PLAYING;
+    //         GameLog.Log("Game loaded successfully.");
+    //     }
+    //     else
+    //     {
+    //         state = State.MENU;
+    //     }
+    // }
+    // private void SaveProgress()
+    // {
+    //     dataService.SaveGameAsync(Stats, level);
+    //     GameLog.Add("Game progress saved.");
+    // // }
+
+    // // TODO: a statistic which have id in the scoreboard must update it self in scoreboard if
+    // // 1. a player loads a save
+    // // 2. after a player exits a floor 
+    // // 3. after a player exits into the menu
+    // private async void LoadScoreboard()
+    // {
+    //     this.Scoreboard = await dataService.LoadScoreboardAsync();
+    // }
+
+    // TODO: Uncomment
 
     public void Input(InputAction action, int? backpack_id = null)
     {
         switch (state)
         {
-            case State.MENU:
-            case State.PAUSED:
-                CurrentMenu?.HandleInput(action);
-                break;
-            case State.STATS:
-                // Any key exits stats view and returns to previous state
-                // if level is null (Menu) or not (Paused)
-                if (level == null) state = State.MENU;
-                else state = State.PAUSED;
-                break;
             case State.PLAYING:
                 GameLog.Clear();
                 if (!OnGameRunningInput(action, backpack_id)) return;
-                // getting here only if a valid player's turn is made:
+
                 OnEnemyTurn();
-                // wearing down active elixirs
                 Player.OnTurnEnded();
                 break;
+
             case State.OVER:
                 OnGameOverInput(action);
                 break;
@@ -178,8 +127,6 @@ class GameSession
                 backpack.Opened = false;
                 return false;
             }
-
-            state = State.PAUSED;
 
             return false;
         }
