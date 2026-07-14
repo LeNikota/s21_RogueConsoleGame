@@ -1,6 +1,8 @@
 using Mindmagma.Curses;
 using domain;
 
+namespace presentation;
+
 class LevelRenderer
 {
     public const int Y_OFFSET = 1; //to render a line below (the very first line is UI)

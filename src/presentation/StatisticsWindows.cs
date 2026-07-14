@@ -9,7 +9,7 @@ class StatisticsWindow(GameStatistics stats, Scoreboard scoreboard) : Window("St
     public GameStatistics Stats { get; set; } = stats;
     public Scoreboard Scoreboard { get; set; } = scoreboard;
 
-    public void Render()
+    public override void Render()
     {
         NCurses.Clear();
 

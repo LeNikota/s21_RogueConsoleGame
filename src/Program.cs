@@ -125,11 +125,9 @@ currentWindow = mainMenuWindow;
 
 while (!shouldClose)
 {
-    if (currentWindow is GameWindow)
-        LevelRenderer.PrintLevel(gameWindow.GameSession.Level);
-
-    UIRenderer.PrintUI(currentWindow);
+    currentWindow.Render();
     NCurses.Refresh();
+    
     Input(currentWindow);
 }
 
