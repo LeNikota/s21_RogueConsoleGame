@@ -1,8 +1,8 @@
 namespace domain;
 
-class GameStatistics
+class GameStatistics(int id = 0)
 {
-    public int Id { get; set; } = 0;
+    public int Id { get; set; } = id;
     public int TreasuresCollected { get; set; } = 0;
     public int HighestLevelReached { get; set; } = 1;
     public int EnemiesDefeated { get; set; } = 0;

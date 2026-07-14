@@ -24,89 +24,104 @@ NCurses.NoEcho();
 // Tells ncurses to exit the main loop
 bool shouldClose = false;
 
+// --- Services & Data ---
 IDataService dataService = new JsonDataService();
-var savedGame = await dataService.LoadGameAsync();
-// (GameStatistics stats, Level level) = await dataService.LoadGameAsync();
-List<GameStatistics>? scoreboard = await dataService.LoadScoreboardAsync();
+var scoreboard = await dataService.LoadScoreboardAsync();
+(GameStatistics stats, Level level)? gameSave = await dataService.LoadGameAsync();
+GameSession? currentGameSession = null;
+if (gameSave.HasValue)
+    currentGameSession = new(gameSave.Value.stats, gameSave.Value.level);
 
+// --- Observer: Auto-Saver ---
+GameSaver? currentSaver = null;
+
+// --- Windows ---
+bool fromPausedMenu = false;
 Window currentWindow;
 var mainMenuWindow = new MenuWindow("==== S21 ROGUE GAME ====");
 var pauseMenuWindow = new MenuWindow();
 var gameWindow = new GameWindow();
-// var statisticWindow = new StatisticsWindow(scoreboard);
+var statisticWindow = new StatisticsWindow(currentGameSession?.Stats ?? new GameStatistics(scoreboard.NextId), scoreboard);
 
-gameWindow.AddInput(InputAction.ESCAPE, () => currentWindow = pauseMenuWindow);
+gameWindow.AddInput(InputAction.ESCAPE, () =>
+{
+    gameWindow.GameSession.RequestSave();
 
-mainMenuWindow.AddItem(
-    "Start New Game", () =>
+    fromPausedMenu = true;    
+    currentWindow = pauseMenuWindow;
+});
+
+// --- Main Menu Setup ---
+mainMenuWindow.AddItem("Start New Game", () =>
     {
-        gameWindow.GameSession = new GameSession();
+        var stats = new GameStatistics(scoreboard.NextId);
+        var level = new Level(1, new Player());
+
+        currentGameSession = new(stats, level);
+        gameWindow.GameSession = currentGameSession;
+        currentSaver = new(currentGameSession, scoreboard, dataService);
+
         currentWindow = gameWindow;
-
-        // statisticWindow.GameSession = gameWindow.GameSession;
-
-
-        GameLog.Log("Welcome to s21_rogue! Use WASD to move.");
     }
 );
-if (savedGame.HasValue)
+if (currentGameSession != null)
 {
-    mainMenuWindow.AddItem(
-        "Continue Game", () =>
+    mainMenuWindow.AddItem("Continue Game", () =>
         {
-            var (stats, level) = savedGame.Value;
-            gameWindow.GameSession = new GameSession(stats, level);
+            gameWindow.GameSession = currentGameSession;
+            currentSaver = new(currentGameSession, scoreboard, dataService);
+
             currentWindow = gameWindow;
-            GameLog.Log("Welcome to s21_rogue! Use WASD to move.");
         }
     );
 }
-// mainMenuWindow.AddItem("View Statistics", () => currentWindow = statisticWindow );
-mainMenuWindow.AddItem(
-    "Exit", () =>
+mainMenuWindow.AddItem("View Statistics", () =>
     {
-        shouldClose = true;
+        currentWindow = statisticWindow;
     }
 );
+mainMenuWindow.AddItem("Exit", () => shouldClose = true);
 
+// --- Pause Menu Setup ---
 pauseMenuWindow.AddInput(InputAction.ESCAPE, () => currentWindow = gameWindow);
 pauseMenuWindow.AddItem("Continue", () => currentWindow = gameWindow);
 pauseMenuWindow.AddItem("Restart", () =>
-{
-    var stats = gameWindow.GameSession.Stats;
-    var level = gameWindow.GameSession.Level;
-    dataService.SaveGameAsync(stats, level);
-
-    gameWindow.GameSession = new();
-    currentWindow = gameWindow;
-});
-// pauseMenuWindow.AddItem( "View Statistics", () => currentWindow = statisticWindow );
-pauseMenuWindow.AddItem(
-    "Main menu", () =>
     {
-        var stats = gameWindow.GameSession.Stats;
-        var level = gameWindow.GameSession.Level;
-        dataService.SaveGameAsync(stats, level);
-        savedGame = (stats, level);
+        var stats = new GameStatistics(scoreboard.NextId);
+        var level = new Level(1, new Player());
 
+        currentGameSession = new(stats, level);
+        gameWindow.GameSession = currentGameSession;
+        currentSaver = new(currentGameSession, scoreboard, dataService);
+
+        currentWindow = gameWindow;
+    }
+);
+pauseMenuWindow.AddItem("View Statistics", () =>
+    {
+        statisticWindow.Stats = gameWindow.GameSession.Stats;
+
+        currentWindow = statisticWindow;
+    }
+);
+pauseMenuWindow.AddItem("Main menu", () =>
+    {
+        fromPausedMenu = false;
         currentWindow = mainMenuWindow;
     }
 );
-pauseMenuWindow.AddItem(
-    "Exit game", () =>
+pauseMenuWindow.AddItem("Exit", () =>
     {
-        var stats = gameWindow.GameSession.Stats;
-        var level = gameWindow.GameSession.Level;
-        dataService.SaveGameAsync(stats, level);
-
-        // needs to update scoreboard
-
+        currentSaver?.Dispose();
         shouldClose = true;
     }
 );
 
-currentWindow = mainMenuWindow;
+// --- Statistic Menu Setup ---
+statisticWindow.AddInput(InputAction.ESCAPE, () => currentWindow = fromPausedMenu ? pauseMenuWindow : mainMenuWindow);
+statisticWindow.AddInput(InputAction.ENTER, () => currentWindow = fromPausedMenu ? pauseMenuWindow : mainMenuWindow);
 
+currentWindow = mainMenuWindow;
 
 while (!shouldClose)
 {
@@ -115,22 +130,19 @@ while (!shouldClose)
 
     UIRenderer.PrintUI(currentWindow);
     NCurses.Refresh();
-
     Input(currentWindow);
 }
-NCurses.EndWin();
 
+NCurses.EndWin();
 
 static void Input(Window window)
 {
     int key = NCurses.GetChar();
-
-    if (key >= '0' && key <= '9')
-    {
-        // window.Input(InputAction.NONE, key - 48);
-        window.Input(InputAction.NONE);
-        return;
-    }
+    // if (key >= '0' && key <= '9')
+    // {
+    //     window.Input(InputAction.NONE, key - 48);
+    //     return;
+    // }
     switch (key)
     {
         case 'w':
@@ -191,7 +203,6 @@ static void Input(Window window)
             window.Input(InputAction.ESCAPE);
             break;
         default:
-            //NCurses.MoveAddString(0, 0, "Unknown input");
             break;
     }
 }
@@ -214,4 +225,3 @@ static void ResizeTerminal()
         Thread.Sleep(100); // give terminal time to react
     }
 }
-

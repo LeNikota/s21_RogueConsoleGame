@@ -158,16 +158,14 @@ class UIRenderer
         y += 2;
         NCurses.MoveAddString(y++, x, "=== HIGH SCORES (Top Treasures) ===");
 
-        // Note: Scoreboard loading logic needs to be implemented in GameSession/DataService
-        // For now, we assume it's available or empty
-        if (game.Scoreboard != null)
-        {
-            for (int i = 0; i < Math.Min(game.Scoreboard.Count, 10); i++)
-            {
-                var score = game.Scoreboard[i];
-                NCurses.MoveAddString(y++, x, $"{i + 1}. Lvl: {score.HighestLevelReached}, Gold: {score.TreasuresCollected}");
-            }
-        }
+        // if (game.Scoreboard != null)
+        // {
+        //     for (int i = 0; i < Math.Min(game.Scoreboard.Count, 10); i++)
+        //     {
+        //         var score = game.Scoreboard[i];
+        //         NCurses.MoveAddString(y++, x, $"{i + 1}. Lvl: {score.HighestLevelReached}, Gold: {score.TreasuresCollected}");
+        //     }
+        // }
 
         NCurses.MoveAddString(NCurses.Lines - 2, 2, "Press any key to return...");
     }

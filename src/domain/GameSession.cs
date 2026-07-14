@@ -30,11 +30,12 @@ class GameSession
     public Player Player => level.Player;
     public State state = State.PLAYING;
     public GameStatistics Stats { get; private set; }
-    public List<GameStatistics>? Scoreboard { get; protected set; }
 
-    public GameSession(/*IDataService dataService*/)
+    public event EventHandler<GameSaveEventArgs>? OnSaveRequested;
+
+    public GameSession(GameStatistics stats)
     {
-        Stats = new GameStatistics();
+        Stats = stats;
         level = new Level(1, new Player());
         state = State.PLAYING;
     }
@@ -46,39 +47,15 @@ class GameSession
         state = State.PLAYING;
     }
 
-    // private async void LoadSavedGame()
-    // {
-    //     var data = await dataService.LoadGameAsync();
+    protected virtual void RaiseSaveEvent()
+    {
+        OnSaveRequested?.Invoke(this, new GameSaveEventArgs(Stats, level));
+    }
 
-    //     if (data.HasValue)
-    //     {
-    //         var (stats, level) = data.Value;
-    //         this.Stats = stats;
-    //         this.level = level;
-    //         this.state = State.PLAYING;
-    //         GameLog.Log("Game loaded successfully.");
-    //     }
-    //     else
-    //     {
-    //         state = State.MENU;
-    //     }
-    // }
-    // private void SaveProgress()
-    // {
-    //     dataService.SaveGameAsync(Stats, level);
-    //     GameLog.Add("Game progress saved.");
-    // // }
-
-    // // TODO: a statistic which have id in the scoreboard must update it self in scoreboard if
-    // // 1. a player loads a save
-    // // 2. after a player exits a floor 
-    // // 3. after a player exits into the menu
-    // private async void LoadScoreboard()
-    // {
-    //     this.Scoreboard = await dataService.LoadScoreboardAsync();
-    // }
-
-    // TODO: Uncomment
+    public void RequestSave()
+    {
+        RaiseSaveEvent();
+    }
 
     public void Input(InputAction action, int? backpack_id = null)
     {
@@ -147,12 +124,10 @@ class GameSession
     {
         if (action == InputAction.ESCAPE)
         {
-            // SaveScore();
             state = State.EXITING;
         }
         else if (action == InputAction.RESTART)
         {
-            // SaveScore();
             state = State.MENU;
             level = null;
         }
@@ -255,6 +230,8 @@ class GameSession
         level = new Level(level.Floor + 1, Player);
         if (level.Floor > Stats.HighestLevelReached)
             Stats.HighestLevelReached = level.Floor;
+
+        RaiseSaveEvent();
     }
 
 }

@@ -7,7 +7,7 @@ namespace data;
 class JsonDataService(string gameSaveFilePath = "game_save.json") : IDataService
 {
     private readonly string gameSaveFilePath = gameSaveFilePath;
-    private readonly string scoreboardFilePath = "scoreboard";
+    private readonly string scoreboardFilePath = "scoreboard.json";
 
     private readonly JsonSerializerOptions options = new()
     {
@@ -19,6 +19,7 @@ class JsonDataService(string gameSaveFilePath = "game_save.json") : IDataService
     public async Task<(GameStatistics, Level)?> LoadGameAsync()
     {
         if (!File.Exists(gameSaveFilePath)) return null;
+
         try
         {
             string json = await File.ReadAllTextAsync(gameSaveFilePath);
@@ -73,34 +74,31 @@ class JsonDataService(string gameSaveFilePath = "game_save.json") : IDataService
         }
     }
 
-    public async Task<List<GameStatistics>?> LoadScoreboardAsync()
+    public async Task<Scoreboard> LoadScoreboardAsync()
     {
-        if (!File.Exists(scoreboardFilePath)) return [];
+        if (!File.Exists(scoreboardFilePath)) return new([]);
 
         try
         {
             string json = await File.ReadAllTextAsync(scoreboardFilePath);
             var scoreboard = JsonSerializer.Deserialize<List<GameStatistics>>(json, options);
 
-            if (scoreboard == null)
-                return [];
-
-            return scoreboard;
+            return new Scoreboard(scoreboard ?? []);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error loading save: {ex.Message}");
-            return null;
+            return new([]);
         }
     }
 
-    public async Task SaveScoreboardAsync(List<GameStatistics> scoreboard)
+    public async Task SaveScoreboardAsync(Scoreboard scoreboard)
     {
         if (scoreboard == null) return;
 
         try
         {
-            var json = JsonSerializer.Serialize(scoreboard, options);
+            var json = JsonSerializer.Serialize(scoreboard.Scores, options);
             await File.WriteAllTextAsync(scoreboardFilePath, json);
         }
         catch (Exception ex)

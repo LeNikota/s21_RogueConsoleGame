@@ -7,8 +7,8 @@ interface IDataService
 
     Task SaveGameAsync(GameStatistics stats, Level level);
 
-    Task<List<GameStatistics>?> LoadScoreboardAsync();
+    Task<Scoreboard> LoadScoreboardAsync();
 
-    Task SaveScoreboardAsync(List<GameStatistics> statsList);
+    Task SaveScoreboardAsync(Scoreboard scoreboard);
 
 }

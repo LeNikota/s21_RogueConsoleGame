@@ -1,20 +1,13 @@
 using Mindmagma.Curses;
 using domain;
+using data;
 
 namespace presentation;
 
-class StatisticsWindow : Window
+class StatisticsWindow(GameStatistics stats, Scoreboard scoreboard) : Window("Statistics")
 {
-    public GameSession? GameSession { get; set; } = new();
-    public List<GameStatistics> Scoreboard { get; set; } = [];
-
-
-    StatisticsWindow(string title = "Statistics", Dictionary<InputAction, Action>? actions = null) : base(title, actions) { }
-
-    StatisticsWindow(List<GameStatistics> scoreboard) : base("Statistics")
-    {
-        Scoreboard = scoreboard;
-    }
+    public GameStatistics Stats { get; set; } = stats;
+    public Scoreboard Scoreboard { get; set; } = scoreboard;
 
     public void Render()
     {
@@ -29,18 +22,18 @@ class StatisticsWindow : Window
         y++;
         NCurses.AttributeSet(NCurses.ColorPair(0)); // Reset
 
-        if (GameSession != null)
-        {
-            NCurses.MoveAddString(y++, x, $"Treasures Collected: {GameSession.Stats.TreasuresCollected}");
-            NCurses.MoveAddString(y++, x, $"Highest Level:       {GameSession.Stats.HighestLevelReached}");
-            NCurses.MoveAddString(y++, x, $"Enemies Defeated:    {GameSession.Stats.EnemiesDefeated}");
-            NCurses.MoveAddString(y++, x, $"Food Eaten:          {GameSession.Stats.FoodEaten}");
-            NCurses.MoveAddString(y++, x, $"Elixirs Drunk:       {GameSession.Stats.ElixirsDrunk}");
-            NCurses.MoveAddString(y++, x, $"Scrolls Read:        {GameSession.Stats.ScrollsRead}");
-            NCurses.MoveAddString(y++, x, $"Hits Dealt:          {GameSession.Stats.HitsDealt}");
-            NCurses.MoveAddString(y++, x, $"Hits Taken:          {GameSession.Stats.HitsTaken}");
-            NCurses.MoveAddString(y++, x, $"Tiles Traversed:     {GameSession.Stats.TilesTraversed}");
-        }
+
+        NCurses.MoveAddString(y++, x, $"Id: {Stats.Id}");
+        NCurses.MoveAddString(y++, x, $"Treasures Collected: {Stats.TreasuresCollected}");
+        NCurses.MoveAddString(y++, x, $"Highest Level:       {Stats.HighestLevelReached}");
+        NCurses.MoveAddString(y++, x, $"Enemies Defeated:    {Stats.EnemiesDefeated}");
+        NCurses.MoveAddString(y++, x, $"Food Eaten:          {Stats.FoodEaten}");
+        NCurses.MoveAddString(y++, x, $"Elixirs Drunk:       {Stats.ElixirsDrunk}");
+        NCurses.MoveAddString(y++, x, $"Scrolls Read:        {Stats.ScrollsRead}");
+        NCurses.MoveAddString(y++, x, $"Hits Dealt:          {Stats.HitsDealt}");
+        NCurses.MoveAddString(y++, x, $"Hits Taken:          {Stats.HitsTaken}");
+        NCurses.MoveAddString(y++, x, $"Tiles Traversed:     {Stats.TilesTraversed}");
+
 
         y += 2;
 
@@ -49,15 +42,18 @@ class StatisticsWindow : Window
         NCurses.MoveAddString(y++, x, "=== HIGH SCORES (Top Treasures) ===");
         NCurses.AttributeSet(NCurses.ColorPair(0));
 
-        if (Scoreboard != null && Scoreboard.Count > 0)
+        if (Scoreboard.Count > 0)
         {
-            // Sort by treasures collected descending
-            var sortedScores = Scoreboard.OrderByDescending(s => s.TreasuresCollected).Take(10).ToList();
-
-            for (int i = 0; i < sortedScores.Count; i++)
+            int i = 1;
+            foreach (var score in Scoreboard.Scores)
             {
-                var score = sortedScores[i];
-                NCurses.MoveAddString(y++, x, $"{i + 1}. Lvl: {score.HighestLevelReached,-3} Gold: {score.TreasuresCollected,-6} Enemies: {score.EnemiesDefeated}");
+                string statsLine = $"{i++}. Id: {score.Id} " +
+                                   $"Lvl: {score.HighestLevelReached,-3} " +
+                                   $"Gold: {score.TreasuresCollected,-6} " +
+                                   $"Enemies: {score.EnemiesDefeated,-3} " +
+                                   $"F/E/S: {score.FoodEaten}/{score.ElixirsDrunk}/{score.ScrollsRead}";
+
+                NCurses.MoveAddString(y++, x, statsLine);
             }
         }
         else
