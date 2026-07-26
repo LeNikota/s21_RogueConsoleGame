@@ -1,4 +1,3 @@
-
 namespace domain;
 
 class Backpack
@@ -66,10 +65,10 @@ class Backpack
 
     public bool OnAction(int? backpack_id, Player Player, Level level)
     {
-        if (backpack_id == null) return false;
+        if (backpack_id == null || !Opened) return false;
 
         int id = (int)backpack_id - 1;
-        if (id >= Backpack.MAX_SIZE) return false;
+        if (id >= MAX_SIZE) return false;
 
         if (id < 0)
         {

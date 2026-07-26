@@ -5,6 +5,7 @@ using data;
 using presentation;
 
 ResizeTerminal();
+WaitForResize();
 nint screen = NCurses.InitScreen();
 NCurses.SetCursor(0);
 
@@ -136,11 +137,11 @@ NCurses.EndWin();
 static void Input(Window window)
 {
     int key = NCurses.GetChar();
-    // if (key >= '0' && key <= '9')
-    // {
-    //     window.Input(InputAction.NONE, key - 48);
-    //     return;
-    // }
+    if (key >= '0' && key <= '9')
+    {
+        window.Input((InputAction)((int)InputAction.ZERO + (key - '0')));
+        return;
+    }
     switch (key)
     {
         case 'w':
@@ -205,6 +206,8 @@ static void Input(Window window)
     }
 }
 
+
+
 static void ResizeTerminal()
 {
     int width = Level.WIDTH;
@@ -222,4 +225,19 @@ static void ResizeTerminal()
         Console.Out.Flush();
         Thread.Sleep(100); // give terminal time to react
     }
+}
+
+static void WaitForResize()
+{
+    int expectedWidth = Level.WIDTH;
+    int expectedHeight = Level.HEIGHT + 3;
+
+    while (Console.WindowWidth < expectedWidth || Console.WindowHeight < expectedHeight)
+    {   
+        Console.SetCursorPosition(0, 0);
+        Console.WriteLine($"Please resize terminal to {expectedWidth}x{expectedHeight} (currently {Console.WindowWidth}x{Console.WindowHeight})");
+        Console.WriteLine("Press any key when done...");
+        Console.ReadKey(true);
+    }
+    Console.Clear();
 }

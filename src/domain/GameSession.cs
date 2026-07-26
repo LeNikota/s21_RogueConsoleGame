@@ -3,7 +3,10 @@ using domain.generation;
 
 namespace domain;
 
-enum InputAction { NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, ENTER, BACKPACK, DROP, WEAPON, FOOD, ELIXIR, SCROLL, RESTART };
+enum InputAction { 
+    NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, ENTER, BACKPACK, DROP, WEAPON, FOOD, ELIXIR, SCROLL, RESTART, 
+    ZERO = 100, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE
+    };
 
 class GameSession
 {
@@ -57,13 +60,13 @@ class GameSession
         RaiseSaveEvent();
     }
 
-    public void Input(InputAction action, int? backpack_id = null)
+    public void Input(InputAction action)
     {
         switch (state)
         {
             case State.PLAYING:
                 GameLog.Clear();
-                if (!OnGameRunningInput(action, backpack_id)) return;
+                if (!OnGameRunningInput(action)) return;
 
                 OnEnemyTurn();
                 Player.OnTurnEnded();
@@ -75,7 +78,7 @@ class GameSession
         }
     }
 
-    private bool OnGameRunningInput(InputAction action, int? backpack_id = null)
+    private bool OnGameRunningInput(InputAction action)
     {
         Backpack backpack = Player.GetBackpack();
         if (InputDirectionMap.TryGetValue(action, out Vector2i? dir))
@@ -114,8 +117,12 @@ class GameSession
             if (backpack.Opened) GameLog.Log("Your backpack:");
             return true;
         }
-        else if (action == InputAction.NONE)
+        else if (action >= InputAction.ZERO)
+        {
+            int backpack_id = action - InputAction.ZERO;
             return backpack.OnAction(backpack_id, Player, level);
+        }
+            
 
         return true;
     }
@@ -161,7 +168,7 @@ class GameSession
                 level.Entities.Remove(door);
         }
 
-        level.UpdateVisibility();
+        //level.UpdateVisibility();
 
         return true;
     }

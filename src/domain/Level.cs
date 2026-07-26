@@ -49,10 +49,10 @@ namespace domain
             Visibility = new VisibilityState[HEIGHT, WIDTH];
             for (int y = 0; y < HEIGHT; y++)
                 for (int x = 0; x < WIDTH; x++)
-                    Visibility[y, x] = VisibilityState.Unexplored;
+                    Visibility[y, x] = VisibilityState.Visible; //VisibilityState.Unexplored;
 
             // Initial reveal around player
-            UpdateVisibility();
+            //UpdateVisibility();
 
             if (floor > 1) GameLog.Log($"Welcome to floor {floor}!");
         }
