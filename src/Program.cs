@@ -47,7 +47,7 @@ gameWindow.AddInput(InputAction.ESCAPE, () =>
 {
     gameWindow.GameSession.RequestSave();
 
-    fromPausedMenu = true;    
+    fromPausedMenu = true;
     currentWindow = pauseMenuWindow;
 });
 
@@ -64,6 +64,33 @@ mainMenuWindow.AddItem("Start New Game", () =>
         currentWindow = gameWindow;
     }
 );
+// //! TODO: DELETE
+// mainMenuWindow.AddItem("Test Entities", () =>
+//     {
+//         var stats = new GameStatistics(scoreboard.NextId);
+//         var level = new Level(1, new Player());
+        
+//         Array.Clear(level.IsWall, 0, level.IsWall.Length);
+
+//         level.Entities = [];
+//         level.Player = new Player(15, 15);
+//         level.Entities.Add(new Zombie(15, 0));
+//         level.Entities.Add(new Vampire(30, 15));
+//         level.Entities.Add(new Ogre(15, 30));
+//         level.Entities.Add(new Ghost(0, 15));
+//         level.Entities.Add(new SnakeMage(15, 30));
+//         level.Entities.Add(new Mimic(30, 0));
+//         level.Entities.Add(new Key(30, 30, Color.Red));
+//         level.Entities.Add(new Key(31, 30, Color.Blue));
+//         level.Entities.Add(new Key(32, 30, Color.Magenta));
+
+//         currentGameSession = new(stats, level);
+//         gameWindow.GameSession = currentGameSession;
+//         currentSaver = new(currentGameSession, scoreboard, dataService);
+
+//         currentWindow = gameWindow;
+//     }
+// );
 if (currentGameSession != null)
 {
     mainMenuWindow.AddItem("Continue Game", () =>
@@ -127,7 +154,7 @@ while (!shouldClose)
 {
     currentWindow.Render();
     NCurses.Refresh();
-    
+
     Input(currentWindow);
 }
 

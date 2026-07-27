@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using domain.generation;
 
 namespace domain;
 
@@ -7,26 +8,21 @@ namespace domain;
 [JsonDerivedType(typeof(Ghost), "ghost")]
 [JsonDerivedType(typeof(Ogre), "ogre")]
 [JsonDerivedType(typeof(SnakeMage), "snakeMage")]
-
 class Enemy : Character
 {
     public enum StatFactor { LOW, MEDIUM, HIGH, VERY_HIGH };
-
     public int Hostility { get; set; }
 
-    // Parameterless constructor required for deserialization
     public Enemy() : base() { }
 
-    // Primary constructor for game logic
     public Enemy(int x, int y, uint _icon, (int hp, int s, int a, int h) stats, Color color = Color.None)
-        : base(x, y, _icon, stats.hp, stats.s, stats.a, color)
+    : base(x, y, _icon, stats.hp, stats.s, stats.a, color)
     {
         Hostility = stats.h;
     }
-
-    // Secondary constructor using StatFactors
+    
     public Enemy(int x, int y, uint _icon, StatFactor hp_f, StatFactor st_f, StatFactor ag_f, StatFactor host_f, Color color = Color.None) :
-        this(x, y, _icon, GenerateStats(hp_f, st_f, ag_f, host_f), color)
+    this(x, y, _icon, GenerateStats(hp_f, st_f, ag_f, host_f), color)
     { }
 
     private static (int hp, int s, int a, int h) GenerateStats(StatFactor hp_f, StatFactor st_f, StatFactor ag_f, StatFactor host_f)
@@ -47,58 +43,64 @@ class Enemy : Character
     {
         int x = pos?.X ?? 0;
         int y = pos?.Y ?? 0;
-
-        return Random.Shared.Next(0, 5) switch
+        
+        return Random.Shared.Next(6) switch
         {
             0 => new Zombie(x, y),
             1 => new Vampire(x, y),
             2 => new Ghost(x, y),
             3 => new Ogre(x, y),
             4 => new SnakeMage(x, y),
+            5 => new Mimic(x, y),
             _ => new Zombie(x, y),
         };
     }
 
     public virtual void MovePeacefully(Level level)
     {
-        // Default implementation: do nothing or move randomly
-        return;
+        var directions = Vector2i.SIMPLE_DIRECTIONS;
+
+        Tools.Shuffle(directions);
+
+        foreach (var dir in directions)
+        {
+            Vector2i newPos = Position + dir;
+
+            if (level.IsPositionValid(newPos))
+            {
+                if (level.GetEntityByPos(newPos) == null)
+                {
+                    Position = newPos;
+                    return;
+                }
+            }
+        }
     }
-}
 
-class Zombie : Enemy
-{
-    public Zombie() : base() { }
+    public virtual void Act(Player player, Level level, GameStatistics stats)
+    {
+        if (Position.DistanceTo(player.Position) > Hostility)
+        {
+            MovePeacefully(level);
+            return;
+        }
 
-    public Zombie(int x = 0, int y = 0) : base(x, y, 'z', StatFactor.HIGH, StatFactor.MEDIUM, StatFactor.LOW, StatFactor.MEDIUM, Color.Green) { }
-}
+        List<Vector2i> path = PathFinder.FindPath(level, Position, player.Position);
 
-class Vampire : Enemy
-{
-    public bool WasAttacked { get; set; } = false;
+        if (path.Count == 0)
+        {
+            MovePeacefully(level);
+            return;
+        }
 
-    public Vampire() : base() { }
-
-    public Vampire(int x = 0, int y = 0) : base(x, y, 'v', StatFactor.HIGH, StatFactor.MEDIUM, StatFactor.HIGH, StatFactor.HIGH, Color.Red) { }
-}
-
-class Ghost : Enemy
-{
-    public Ghost() : base() { }
-
-    public Ghost(int x = 0, int y = 0) : base(x, y, 'g', StatFactor.LOW, StatFactor.LOW, StatFactor.HIGH, StatFactor.LOW, Color.White) { }
-}
-
-class Ogre : Enemy
-{
-    public Ogre() : base() { }
-
-    public Ogre(int x = 0, int y = 0) : base(x, y, 'o', StatFactor.VERY_HIGH, StatFactor.VERY_HIGH, StatFactor.LOW, StatFactor.MEDIUM, Color.Yellow) { }
-}
-
-class SnakeMage : Enemy
-{
-    public SnakeMage() : base() { }
-
-    public SnakeMage(int x = 0, int y = 0) : base(x, y, 's', StatFactor.MEDIUM, StatFactor.MEDIUM, StatFactor.VERY_HIGH, StatFactor.HIGH, Color.White) { }
+        if (path[0] == player.Position)
+        {
+            Attack(player);
+            stats.HitsTaken++;
+        }
+        else
+        {
+            Position = path[0];
+        }
+    }
 }

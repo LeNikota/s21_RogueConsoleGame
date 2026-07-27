@@ -25,7 +25,7 @@ class Item : Entity
         int x = pos?.X ?? 0;
         int y = pos?.Y ?? 0;
 
-        return Random.Shared.Next(0, 4) switch
+        return Random.Shared.Next(4) switch
         {
             0 => new Weapon(x, y),
             1 => new Food(x, y),

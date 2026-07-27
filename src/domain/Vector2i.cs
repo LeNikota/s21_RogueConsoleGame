@@ -14,11 +14,28 @@ class Vector2i
     public static readonly Vector2i DOWN = new(0, 1);
     public static readonly Vector2i LEFT = new(-1, 0);
     public static readonly Vector2i RIGHT = new(1, 0);
-    public static readonly Vector2i[] ALL_DIRECTIONS =
-    [
-        new(0, -1), new(1, -1), new(1, 0), new(1, 1),
-            new(0, 1), new(-1, 1), new(-1, 0), new(-1, -1)
+
+    public static readonly Vector2i UP_LEFT = new(-1, -1);
+    public static readonly Vector2i UP_RIGHT = new(1, -1);
+    public static readonly Vector2i DOWN_LEFT = new(-1, 1);
+    public static readonly Vector2i DOWN_RIGHT = new(1, 1);
+
+    public static readonly Vector2i[] SIMPLE_DIRECTIONS = [UP, DOWN, LEFT, RIGHT];
+    public static readonly Vector2i[] DIAGONAL_DIRECTIONS = [UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT];
+    public static readonly Vector2i[] ALL_DIRECTIONS = [
+        UP, DOWN, LEFT, RIGHT,
+        UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT
     ];
+
+    public static Vector2i operator *(Vector2i a, int b)
+    {
+        return new Vector2i(a.X * b, a.Y * b);
+    }
+
+    public static Vector2i operator *(int a, Vector2i b)
+    {
+        return new Vector2i(a * b.X, a * b.Y);
+    }
 
     public static Vector2i operator +(Vector2i a, Vector2i b)
     {

@@ -121,6 +121,9 @@ class LevelRenderer
             if (visibility[entity.Position.Y, entity.Position.X] != VisibilityState.Visible)
                 continue;
 
+            if (entity is Ghost ghost && ghost.IsInvisible)
+                continue;    
+
             short pair = 0;
             if (ColorPairMap.TryGetValue(entity.Color, out short p))
             {

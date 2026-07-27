@@ -77,12 +77,21 @@ class GameSession
 
     private bool OnGameRunningInput(InputAction action, int? backpack_id = null)
     {
+        // Check if Player is Asleep
+        if (Player.IsAsleep)
+        {
+            GameLog.Log("You are asleep and cannot move!");
+            // Still process enemy turns
+            OnEnemyTurn();
+            Player.OnTurnEnded();
+            return false;
+        }
+
         Backpack backpack = Player.GetBackpack();
         if (InputDirectionMap.TryGetValue(action, out Vector2i? dir))
         {
             backpack.Opened = false;
             Vector2i new_pos = Player.Position + dir;
-
             return MovePlayer(new_pos);
         }
         else if (InputBackpackMap.TryGetValue(action, out Backpack.Action a))
@@ -197,31 +206,14 @@ class GameSession
     {
         foreach (Enemy enemy in level.Entities.FindAll(e => e is Enemy).Cast<Enemy>())
         {
-            if (enemy.Position.DistanceTo(Player.Position) > enemy.Hostility)
-            {
-                enemy.MovePeacefully(level);
-                continue;
-            }
-            List<Vector2i> path = PathFinder.FindPath(level, enemy.Position, Player.Position);
-            if (path.Count == 0)
-            {
-                //no path to player
-                enemy.MovePeacefully(level);
-                continue;
-            }
-            if (path[0] == Player.Position)
-            {
-                enemy.Attack(Player);
-                Stats.HitsTaken++;
+            enemy.Act(Player, level, Stats);
 
-                if (Player.IsDead())
-                {
-                    state = State.OVER;
-                    GameLog.Add("You die. Press R to restart or ESC to exit");
-                    return;
-                }
+            if (Player.IsDead())
+            {
+                state = State.OVER;
+                GameLog.Add("You die. Press R to restart or ESC to exit");
+                return;
             }
-            else enemy.Position = path[0];
         }
     }
 

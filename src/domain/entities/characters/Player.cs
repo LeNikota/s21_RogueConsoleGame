@@ -1,5 +1,5 @@
+// domain/entities/characters/Player.cs
 using System.Text.Json.Serialization;
-
 namespace domain
 {
     [JsonDerivedType(typeof(Player))]
@@ -9,16 +9,17 @@ namespace domain
         public List<Elixir> ActiveElixirs { get; set; } = [];
         public Weapon? CurrentWeapon { get; set; } = null;
 
-        public Player() : base(0, 0, '@', 100, 5, 5) { }
+        public bool IsAsleep { get; set; } = false;
 
+        public Player() : base(0, 0, '@', 100, 5, 5) { }
         public Player(int x = 0, int y = 0, GameStatistics? stats = null)
-            : base(x, y, '@', 100, 5, 5) {}
+        : base(x, y, '@', 100, 5, 5) { }
 
         public bool PickItem(Item item)
         {
             return Backpack.Add(item);
         }
-
+        
         public Backpack GetBackpack() { return Backpack; }
 
         public void RemoveItem(Item item) => Backpack.Remove(item);
@@ -59,7 +60,7 @@ namespace domain
             Food food = (Food)Backpack[id];
             CurrentHealth = Math.Min(MaxHealth, CurrentHealth + food.Health);
             Backpack.Remove(food);
-            
+
             return true;
         }
 
@@ -79,7 +80,7 @@ namespace domain
             if (Backpack[id] is not Elixir) return false;
 
             Elixir elixir = (Elixir)Backpack[id];
-            elixir.TurnsLeft += 1; //to mitigate immediate decrease
+            elixir.TurnsLeft += 1;
 
             ModifyStat(elixir.Stat, elixir.Power);
             ActiveElixirs.Add(elixir);
@@ -90,6 +91,12 @@ namespace domain
 
         public void OnTurnEnded()
         {
+            if (IsAsleep)
+            {
+                IsAsleep = false;
+                GameLog.Add("You wake up.");
+            }
+
             List<Elixir> ToRemove = [];
             foreach (var elixir in ActiveElixirs)
             {
@@ -101,6 +108,41 @@ namespace domain
                 }
             }
             foreach (var elixir in ToRemove) ActiveElixirs.Remove(elixir);
+        }
+
+        public void StealMaxHealth(int amount)
+        {
+            if (amount <= 0) return;
+            int oldMax = MaxHealth;
+            SetStat(Stat.MaxHealth, Math.Max(1, MaxHealth - amount));
+
+            // If current health was at max, reduce it too so they don't have more HP than max
+            if (CurrentHealth >= oldMax)
+            {
+                CurrentHealth = MaxHealth;
+            }
+            else if (CurrentHealth > MaxHealth)
+            {
+                CurrentHealth = MaxHealth;
+            }
+        }
+
+        public override void Attack(Character other)
+        {
+            if (IsAsleep)
+                return;
+
+            if (other is Vampire vampire)
+            {
+                if (!vampire.WasAttacked)
+                {
+                    vampire.WasAttacked = true;
+                    GameLog.Add($"The Vampire dodges your first attack! `");
+                    return;
+                }
+            }
+
+            base.Attack(other);
         }
     }
 }

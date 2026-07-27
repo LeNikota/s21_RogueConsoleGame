@@ -51,7 +51,7 @@ class Character : Entity
         SetStat(stat, GetStat(stat) + delta);
     }
 
-    public void Attack(Character other)
+    public virtual void Attack(Character other)
     {
         string my_name = this is Player ? "You" : GetType().Name;
         string other_name = other is Player ? "you" : other.GetType().Name;

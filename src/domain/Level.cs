@@ -35,6 +35,7 @@ namespace domain
         }
 
         public int Floor { get; set; }
+        // public Room[] Rooms { get; protected set; }
         Room[] Rooms { get; set; }
         List<List<Passage>> Passages { get; set; }
 
@@ -86,6 +87,45 @@ namespace domain
             }
             return null;
 
+        }
+        
+        public Room? GetRoomByPos(Vector2i pos)
+        {
+            if (Rooms == null) return null;
+
+            foreach (var room in Rooms)
+            {
+                if (room != null && room.HasPoint(pos))
+                {
+                    return room;
+                }
+            }
+
+            return null;
+        }
+
+        public Vector2i GetRandPosInRoom(Room room)
+        {
+            Vector2i result = Vector2i.ZERO;
+
+            int upper_left_x = room.Position.X + 1;
+            int upper_left_y = room.Position.Y + 1;
+
+            int bottom_right_x = upper_left_x + room.Size.X - 2;
+            int bottom_right_y = upper_left_y + room.Size.Y - 2;
+
+            int max_tries = (bottom_right_x - upper_left_x) * (bottom_right_y - upper_left_y);
+            HashSet<Vector2i> taken = [.. Entities.Where(e => room.HasPoint(e.Position)).Select(e => e.Position)];
+
+            for (int i = 0; i < max_tries; i++)
+            {
+                result = new(
+                    Random.Shared.Next(upper_left_x, bottom_right_x),
+                    Random.Shared.Next(upper_left_y, bottom_right_y));
+                if (!taken.Contains(result)) break;
+            }
+            
+            return result;
         }
 
 
