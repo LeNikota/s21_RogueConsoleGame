@@ -119,8 +119,8 @@ class GameSession
         }
         else if (action >= InputAction.ZERO)
         {
-            int backpack_id = action - InputAction.ZERO;
-            return backpack.OnAction(backpack_id, Player, level);
+            int button_id = action - InputAction.ZERO;
+            return backpack.OnItemSelected(button_id, Player, level);
         }
             
 

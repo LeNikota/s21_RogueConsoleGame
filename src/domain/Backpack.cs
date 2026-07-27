@@ -63,12 +63,12 @@ class Backpack
         }
     }
 
-    public bool OnAction(int? backpack_id, Player Player, Level level)
+    public bool OnItemSelected(int? button_id, Player Player, Level level)
     {
-        if (backpack_id == null || !Opened) return false;
+        if (button_id == null || !Opened) return false;
 
-        int id = (int)backpack_id - 1;
-        if (id >= MAX_SIZE) return false;
+        int id = (int)button_id - 1; //item id
+        if (id >= MAX_SIZE || id >= Count) return false;
 
         if (id < 0)
         {
