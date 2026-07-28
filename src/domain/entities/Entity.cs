@@ -12,6 +12,7 @@ enum Color { None, White, Red, Green, Blue, Yellow, Cyan, Magenta, Black }
 [JsonDerivedType(typeof(Ghost), "ghost")]
 [JsonDerivedType(typeof(Ogre), "ogre")]
 [JsonDerivedType(typeof(SnakeMage), "snakeMage")]
+[JsonDerivedType(typeof(Mimic), "mimic")]
 [JsonDerivedType(typeof(Weapon), "weapon")]
 [JsonDerivedType(typeof(Food), "food")]
 [JsonDerivedType(typeof(Scroll), "scroll")]

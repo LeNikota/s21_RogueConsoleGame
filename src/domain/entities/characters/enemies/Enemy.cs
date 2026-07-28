@@ -8,6 +8,8 @@ namespace domain;
 [JsonDerivedType(typeof(Ghost), "ghost")]
 [JsonDerivedType(typeof(Ogre), "ogre")]
 [JsonDerivedType(typeof(SnakeMage), "snakeMage")]
+[JsonDerivedType(typeof(Mimic), "mimic")]
+
 class Enemy : Character
 {
     public enum StatFactor { LOW, MEDIUM, HIGH, VERY_HIGH };
@@ -20,20 +22,25 @@ class Enemy : Character
     {
         Hostility = stats.h;
     }
-    
+
     public Enemy(int x, int y, uint _icon, StatFactor hp_f, StatFactor st_f, StatFactor ag_f, StatFactor host_f, Color color = Color.None) :
     this(x, y, _icon, GenerateStats(hp_f, st_f, ag_f, host_f), color)
     { }
 
-    private static (int hp, int s, int a, int h) GenerateStats(StatFactor hp_f, StatFactor st_f, StatFactor ag_f, StatFactor host_f)
+    private static (int hp, int s, int a, int h) GenerateStats(StatFactor hp_f, StatFactor st_f, StatFactor ag_f, StatFactor host_f, int floor = 0)
     {
+        // Basic multipliers
         double health_factor = 1 + ((double)(hp_f + 1) * 0.1);
         double strength_factor = 1 + ((double)(st_f + 1) * 0.1);
         double agility_factor = 1 + ((double)(ag_f + 1) * 0.1);
 
-        int health = Random.Shared.Next((int)Math.Round(50 * health_factor), (int)Math.Round(100 * health_factor));
-        int strength = (int)st_f + Random.Shared.Next((int)Math.Round(1 * strength_factor), (int)Math.Round(5 * strength_factor));
-        int agility = (int)ag_f + Random.Shared.Next((int)Math.Round(1 * agility_factor), (int)Math.Round(5 * agility_factor));
+        // Task 2: Global difficulty multiplier by floor
+        // +5% stats for each floor
+        double floorMultiplier = 1.0 + (floor * 0.05);
+
+        int health = (int)(Random.Shared.Next((int)Math.Round(50 * health_factor), (int)Math.Round(100 * health_factor)) * floorMultiplier);
+        int strength = (int)(((int)st_f + Random.Shared.Next((int)Math.Round(1 * strength_factor), (int)Math.Round(5 * strength_factor))) * floorMultiplier);
+        int agility = (int)(((int)ag_f + Random.Shared.Next((int)Math.Round(1 * agility_factor), (int)Math.Round(5 * agility_factor))) * floorMultiplier);
         int hostility = ((int)host_f + 2) * 2;
 
         return (health, strength, agility, hostility);
@@ -43,7 +50,7 @@ class Enemy : Character
     {
         int x = pos?.X ?? 0;
         int y = pos?.Y ?? 0;
-        
+
         return Random.Shared.Next(6) switch
         {
             0 => new Zombie(x, y),
@@ -54,6 +61,39 @@ class Enemy : Character
             5 => new Mimic(x, y),
             _ => new Zombie(x, y),
         };
+    }
+
+    public static Enemy GetRandomEnemyByFloor(Vector2i? pos = null, int floor = 1)
+    {
+        int x = pos?.X ?? 0;
+        int y = pos?.Y ?? 0;
+
+        int roll = Random.Shared.Next(100);
+
+        if (floor < 5)
+        {
+            if (roll < 30) return new Zombie(x, y);
+            if (roll < 70) return new Ghost(x, y);
+            return new Mimic(x, y);
+        }
+        else if (floor < 12)
+        {
+            if (roll < 25) return new Zombie(x, y);
+            if (roll < 50) return new Ghost(x, y);
+            if (roll < 75) return new Mimic(x, y);
+            if (roll < 85) return new Ogre(x, y);
+            if (roll < 95) return new SnakeMage(x, y);
+            return new Vampire(x, y);
+        }
+        else
+        {
+            if (roll < 15) return new Zombie(x, y);
+            if (roll < 30) return new Ghost(x, y);
+            if (roll < 45) return new Mimic(x, y);
+            if (roll < 65) return new Ogre(x, y);
+            if (roll < 85) return new SnakeMage(x, y);
+            return new Vampire(x, y);
+        }
     }
 
     public virtual void MovePeacefully(Level level)

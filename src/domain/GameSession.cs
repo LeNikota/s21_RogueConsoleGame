@@ -3,7 +3,7 @@ using domain.generation;
 
 namespace domain;
 
-enum InputAction { NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, ENTER, BACKPACK, DROP, WEAPON, FOOD, ELIXIR, SCROLL, RESTART };
+enum InputAction { NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, ENTER, BACKPACK, DROP, WEAPON, FOOD, ELIXIR, SCROLL, RESTART, NEXT };
 
 class GameSession
 {
@@ -178,14 +178,21 @@ class GameSession
     private void OnEnemyTouched(Enemy enemy)
     {
         Stats.HitsDealt++;
-
         Player.Attack(enemy);
         if (enemy.IsDead())
         {
-            int treasure = Random.Shared.Next(100, 1000);
-            GameLog.Add($"{enemy.GetType().Name} dies! You get treasure worth {treasure}");
+            // Task 2: The number of treasures depends on the difficulty of the enemy and the floor
+            int baseTreasure = Random.Shared.Next(100, 1000);
+            int floorBonus = Level.Floor * 50; // +50 gold for each floor
+            int treasure = baseTreasure + floorBonus;
+
+
+            Stats.TreasuresCollected += treasure;
+            Stats.EnemiesDefeated++;
+
             level.Entities.Remove(enemy);
-            Player.GetBackpack().AddTreasure(treasure);
+
+            GameLog.Add($"{enemy.GetType().Name} dies! You get treasure worth {treasure}");
         }
     }
 
@@ -204,27 +211,44 @@ class GameSession
 
     private void OnEnemyTurn()
     {
+        int startHealth = Player.CurrentHealth;
+
         foreach (Enemy enemy in level.Entities.FindAll(e => e is Enemy).Cast<Enemy>())
         {
             enemy.Act(Player, level, Stats);
-
             if (Player.IsDead())
             {
                 state = State.OVER;
-                GameLog.Add("You die. Press R to restart or ESC to exit");
+                GameLog.Add("You die. Press ESC to exit");
                 return;
             }
+        }
+
+        int damageTaken = startHealth - Player.CurrentHealth;
+        if (damageTaken > 0)
+        {
+            Stats.DamageTakenLastLevel += damageTaken;
         }
     }
 
     public void OnLevelExited()
     {
-        level = new Level(level.Floor + 1, Player);
-        if (level.Floor > Stats.HighestLevelReached)
+        int nextLevel = level.Floor + 1;
+
+        if (nextLevel > Stats.HighestLevelReached)
             Stats.HighestLevelReached = level.Floor;
 
+        if (nextLevel > 21)
+        {
+            state = State.OVER;
+            GameLog.Add("You won. Press ESC to exit");
+            return;
+        }
+
+        level = new Level(nextLevel, Player, Stats);
+
+        Stats.ResetLevelStats();
         RaiseSaveEvent();
     }
-
 }
 

@@ -33,6 +33,7 @@ class MenuWindow : Window
         });
     }
 
+    // Adds a menu item and its press event handler
     public void AddItem(string Label, Action Callback)
     {
         _items.Add((Label, Callback));

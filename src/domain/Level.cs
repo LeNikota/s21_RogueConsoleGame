@@ -39,12 +39,12 @@ namespace domain
         Room[] Rooms { get; set; }
         List<List<Passage>> Passages { get; set; }
 
-        public Level(int floor, Player player)
+        public Level(int floor, Player player, GameStatistics? stats = null)
         {
             Floor = floor;
             Player = player;
 
-            (Rooms, Passages, Entities, IsWall) = LevelGenerator.Generate(WIDTH, HEIGHT, floor, player);
+            (Rooms, Passages, Entities, IsWall) = LevelGenerator.Generate(WIDTH, HEIGHT, floor, player, stats);
 
             // Initialize visibility to Unexplored
             Visibility = new VisibilityState[HEIGHT, WIDTH];

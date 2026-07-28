@@ -34,4 +34,28 @@ class Item : Entity
             _ => new Food(x, y),
         };
     }
+
+    public static Item GetRandomItemByFloor(Vector2i? pos = null, int floor = 1)
+    {
+        int x = pos?.X ?? 0;
+        int y = pos?.Y ?? 0;
+
+        int roll = Random.Shared.Next(100);
+
+        if (floor <= 5)
+        {
+            // Standard distribution
+            if (roll < 25) return new Weapon(x, y);
+            if (roll < 50) return new Food(x, y);
+            if (roll < 75) return new Scroll(x, y);
+            return new Elixir(x, y);
+        }
+        {
+            // Shift towards weapons and scrolls (permanent buffs), less food/elixirs
+            if (roll < 40) return new Weapon(x, y);
+            if (roll < 60) return new Food(x, y);
+            if (roll < 85) return new Scroll(x, y);
+            return new Elixir(x, y);
+        }
+    }
 }

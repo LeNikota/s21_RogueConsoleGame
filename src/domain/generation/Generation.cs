@@ -65,17 +65,23 @@ namespace domain.generation
         static List<List<Passage>>? passages;
         static List<Entity>? entities;
 
-        // Changes on level number and player gameplay
-        static int enemy_num = 1;
-        static int item_num = 3;
+        // Parameters for balance
+        private const int BASE_ENEMY_COUNT = 1;
+        private const int MAX_ENEMY_COUNT = 15;
+        private const int BASE_ITEM_COUNT = 4;
+        private const int MIN_ITEM_COUNT = 1;
 
-        static public (Room[], List<List<Passage>>, List<Entity>, bool[,]) Generate(int width, int height, int floor, Player player)
+        // Difficulty factors
+        private const double DIFFICULTY_SCALING_FACTOR = 0.15; // How quickly the difficulty increases
+        private const double ADAPTIVE_THRESHOLD_HIGH_DAMAGE = 30; // If the damage is > 30, make the game easier
+        private const double ADAPTIVE_THRESHOLD_LOW_DAMAGE = 5; // If the damage is < 5, make the game more difficult
+
+        public static (Room[], List<List<Passage>>, List<Entity>, bool[,]) Generate(int width, int height, int floor, Player player, GameStatistics? stats = null)
         {
             rooms = GenerateRooms();
             passages = GeneratePassages();
             entities = [];
             bool[,] is_wall = ConvertToArray(width, height);
-
 
             int player_room_index = Random.Shared.Next(ROOM_COUNT);
             var player_position = GetRandPosInRoom([player_room_index]);
@@ -83,26 +89,54 @@ namespace domain.generation
             player.Position.Y = player_position.Y;
             entities.Add(player);
 
-            // TODO: place into separate functions
-            // Entity and items generations
-            // enemy_num += floor;
-            // item_num += floor;
+            // 1. Task 2: Calculate the base number of enemies and items based on the floor
+            // The higher the floor, the more enemies, but not infinitely
+            int baseEnemies = BASE_ENEMY_COUNT + (int)(floor * DIFFICULTY_SCALING_FACTOR);
+            baseEnemies = Math.Clamp(baseEnemies, BASE_ENEMY_COUNT, MAX_ENEMY_COUNT);
+
+            // Task 2: The higher the floor, the fewer useful items
+            int baseItems = Math.Max(MIN_ITEM_COUNT, BASE_ITEM_COUNT - (floor / 5));
+
+            // 2. Task 7: Adaptive Adjustment
+            double adaptiveModifier = 1.0;
+            if (stats != null)
+            {
+                // If the player took a lot of damage in the previous level, then make it easier
+                if (stats.DamageTakenLastLevel > ADAPTIVE_THRESHOLD_HIGH_DAMAGE)
+                {
+                    adaptiveModifier = 0.7; // Reduce the number of enemies by 30%
+                    baseItems += 2;         // Add bonus items
+                    GameLog.Log("The dungeon seems easier this time...");
+                }
+                // If the player has taken almost no damage, then moisten
+                else if (stats.DamageTakenLastLevel < ADAPTIVE_THRESHOLD_LOW_DAMAGE && floor > 1)
+                {
+                    adaptiveModifier = 1.3; // Increase the number of enemies by 30%
+                    baseItems = Math.Max(MIN_ITEM_COUNT, baseItems - 1);
+                    GameLog.Log("The air feels heavier and more hostile...");
+                }
+            }
+
+            int finalEnemyCount = (int)(baseEnemies * adaptiveModifier);
+            int finalItemCount = baseItems;
+
 
             List<int> available_rooms = [.. Enumerable.Range(0, ROOM_COUNT).Where(r => r != player_room_index)];
             entities.Add(new Door(0, 0, true) { Position = GetRandPosInRoom(available_rooms) });
-
-            for (int i = 0; i < enemy_num; i++)
+            // Генерация врагов
+            for (int i = 0; i < finalEnemyCount; i++)
             {
                 Vector2i pos = GetRandPosInRoom(available_rooms);
-                entities.Add(Enemy.GetRandomEnemy(pos));
+                entities.Add(Enemy.GetRandomEnemyByFloor(pos, floor));
             }
-
-            for (int j = 0; j < item_num; j++)
+            // Генерация предметов
+            for (int j = 0; j < finalItemCount; j++)
             {
-                entities.Add(Item.GetRandomItem(GetRandPosInRoom(available_rooms)));
+                entities.Add(Item.GetRandomItemByFloor(GetRandPosInRoom(available_rooms), floor));
             }
 
-            List<Door> doors = GenerateDoorsAndKeys(rooms[player_room_index]);
+            int doorCount = Random.Shared.Next(0, floor / 6);
+            List<Door> doors = GenerateDoorsAndKeys(rooms[player_room_index], doorCount);
             entities.AddRange(doors);
             doors.ForEach(door =>
             {
@@ -438,11 +472,11 @@ namespace domain.generation
             return is_wall;
         }
 
-        static List<Door> GenerateDoorsAndKeys(Room player_room)
+        static List<Door> GenerateDoorsAndKeys(Room player_room, int count = 1)
         {
             List<Door> doors = [];
-            List<Color> colors = [Color.Blue, Color.Magenta];
-            int doorCount = Random.Shared.Next(0, colors.Count + 1);
+            List<Color> colors = [Color.Yellow, Color.Magenta, Color.Cyan];
+            int doorCount = Math.Clamp(count, 0, 3);
 
             // 1. From player room start searching for a passage to block with a door
             // 2. Place a door somewhere, not behind the existing doors

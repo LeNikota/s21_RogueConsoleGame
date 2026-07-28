@@ -12,6 +12,9 @@ class GameStatistics(int id = 0)
     public int HitsDealt { get; set; } = 0;
     public int HitsTaken { get; set; } = 0;
     public int TilesTraversed { get; set; } = 0;
+    
+    // Task 7: Adaptive Balancing
+    public int DamageTakenLastLevel { get; set; } = 0; 
 
     public void Reset()
     {
@@ -24,6 +27,13 @@ class GameStatistics(int id = 0)
         HitsDealt = 0;
         HitsTaken = 0;
         TilesTraversed = 0;
+
+        DamageTakenLastLevel = 0;
+    }
+
+    public void ResetLevelStats()
+    {
+        DamageTakenLastLevel = 0;
     }
 
     public override string ToString()

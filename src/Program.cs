@@ -50,6 +50,8 @@ gameWindow.AddInput(InputAction.ESCAPE, () =>
     fromPausedMenu = true;
     currentWindow = pauseMenuWindow;
 });
+// //! TODO: DELETE
+gameWindow.AddInput(InputAction.NEXT, () => gameWindow.GameSession.OnLevelExited());
 
 // --- Main Menu Setup ---
 mainMenuWindow.AddItem("Start New Game", () =>
@@ -69,7 +71,7 @@ mainMenuWindow.AddItem("Start New Game", () =>
 //     {
 //         var stats = new GameStatistics(scoreboard.NextId);
 //         var level = new Level(1, new Player());
-        
+
 //         Array.Clear(level.IsWall, 0, level.IsWall.Length);
 
 //         level.Entities = [];
@@ -218,6 +220,10 @@ static void Input(Window window)
         case 'r':
         case 'R':
             window.Input(InputAction.RESTART);
+            break;
+        case 'n':
+        case 'N':
+            window.Input(InputAction.NEXT);
             break;
         case '\n':
         case '\r':
