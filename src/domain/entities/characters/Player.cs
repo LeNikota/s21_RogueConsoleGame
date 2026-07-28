@@ -11,6 +11,10 @@ namespace domain
 
         public bool IsAsleep { get; set; } = false;
 
+        // For 3D rendering
+        // The direction the player is facing in 3D space
+        public double Angle { get; set; } = 0; // In radians
+
         public Player() : base(0, 0, '@', 100, 5, 5) { }
         public Player(int x = 0, int y = 0, GameStatistics? stats = null)
         : base(x, y, '@', 100, 5, 5) { }
@@ -19,7 +23,7 @@ namespace domain
         {
             return Backpack.Add(item);
         }
-        
+
         public Backpack GetBackpack() { return Backpack; }
 
         public void RemoveItem(Item item) => Backpack.Remove(item);

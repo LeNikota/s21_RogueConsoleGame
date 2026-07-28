@@ -1,9 +1,11 @@
 ﻿using Mindmagma.Curses;
+using System.Text;
 using System.Runtime.InteropServices;
 using domain;
 using data;
 using presentation;
 
+WaitForResize();
 ResizeTerminal();
 nint screen = NCurses.InitScreen();
 NCurses.SetCursor(0);
@@ -40,7 +42,9 @@ bool fromPausedMenu = false;
 Window currentWindow;
 var mainMenuWindow = new MenuWindow("==== S21 ROGUE GAME ====");
 var pauseMenuWindow = new MenuWindow();
-var gameWindow = new GameWindow();
+// //! TODO: Modify behaver
+// var gameWindow = new GameWindow();
+var gameWindow = new GameWindow3D();
 var statisticWindow = new StatisticsWindow(currentGameSession?.Stats ?? new GameStatistics(scoreboard.NextId), scoreboard);
 
 gameWindow.AddInput(InputAction.ESCAPE, () =>
@@ -51,7 +55,7 @@ gameWindow.AddInput(InputAction.ESCAPE, () =>
     currentWindow = pauseMenuWindow;
 });
 // //! TODO: DELETE
-gameWindow.AddInput(InputAction.NEXT, () => gameWindow.GameSession.OnLevelExited());
+// gameWindow.AddInput(InputAction.NEXT, () => gameWindow.GameSession.OnLevelExited());
 
 // --- Main Menu Setup ---
 mainMenuWindow.AddItem("Start New Game", () =>
@@ -151,6 +155,9 @@ statisticWindow.AddInput(InputAction.ESCAPE, () => currentWindow = fromPausedMen
 statisticWindow.AddInput(InputAction.ENTER, () => currentWindow = fromPausedMenu ? pauseMenuWindow : mainMenuWindow);
 
 currentWindow = mainMenuWindow;
+// //! TODO: Modify behaver
+currentWindow.Input(InputAction.ENTER);
+
 
 while (!shouldClose)
 {
@@ -238,10 +245,22 @@ static void Input(Window window)
     }
 }
 
-static void ResizeTerminal()
+static void ResizeTerminal(int width = 0, int height = 0)
 {
-    int width = Level.WIDTH;
-    int height = Level.HEIGHT + 3; //+2 for the UI +1 cause otherwise it fucking explodes
+    if (width == 0 || height == 0)
+    {
+        width = Level.WIDTH;
+        height = Level.HEIGHT + 3; //+2 for the UI +1 cause otherwise it fucking explodes
+    }
+
+    // 1/4 Of my full screen 
+    width = 222;
+    height = 52;
+
+    // My full screen
+    // width = 506;
+    // height = 108;
+
     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
     {
         Console.BufferWidth = width;
@@ -255,4 +274,30 @@ static void ResizeTerminal()
         Console.Out.Flush();
         Thread.Sleep(100); // give terminal time to react
     }
+}
+
+static void WaitForResize(int expectedWidth = 0, int expectedHeight = 0)
+{
+    if (expectedWidth == 0 || expectedHeight == 0)
+    {
+        expectedWidth = Level.WIDTH;
+        expectedHeight = Level.HEIGHT + 3;
+    }
+    // 1/4 Of my full screen 
+    // expectedWidth = 222;
+    // expectedHeight = 52;
+
+    // // My full screen
+    // expectedWidth = 506;
+    // expectedHeight = 108;
+
+
+    while (Console.WindowWidth < expectedWidth || Console.WindowHeight < expectedHeight)
+    {
+        Console.SetCursorPosition(0, 0);
+        Console.WriteLine($"Please resize terminal to {expectedWidth}x{expectedHeight} (currently {Console.WindowWidth}x{Console.WindowHeight})");
+        Console.WriteLine("Press any key when done...");
+        Console.ReadKey(true);
+    }
+    Console.Clear();
 }

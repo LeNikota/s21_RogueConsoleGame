@@ -72,4 +72,6 @@ static class Tools
             (list[j], list[i]) = (list[i], list[j]);
         }
     }
+
+    public static double DegToRad(double deg) => deg * Math.PI / 180.0;
 }

@@ -88,7 +88,7 @@ namespace domain
             return null;
 
         }
-        
+
         public Room? GetRoomByPos(Vector2i pos)
         {
             if (Rooms == null) return null;
@@ -124,7 +124,7 @@ namespace domain
                     Random.Shared.Next(upper_left_y, bottom_right_y));
                 if (!taken.Contains(result)) break;
             }
-            
+
             return result;
         }
 
