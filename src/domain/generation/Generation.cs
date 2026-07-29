@@ -85,8 +85,7 @@ namespace domain.generation
 
             int player_room_index = Random.Shared.Next(ROOM_COUNT);
             var player_position = GetRandPosInRoom([player_room_index]);
-            player.Position.X = player_position.X;
-            player.Position.Y = player_position.Y;
+            player.Position = player_position;
             entities.Add(player);
 
             // 1. Task 2: Calculate the base number of enemies and items based on the floor

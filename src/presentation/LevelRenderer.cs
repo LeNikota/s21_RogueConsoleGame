@@ -119,7 +119,7 @@ class LevelRenderer
                     if (is_wall[y, x])
                     {
                         uint mask = GetWallChar(is_wall, x, y);
-                        NCurses.MoveAddChar(y + Y_OFFSET, x, WallAcsLookup[mask]);
+                        NCurses.MoveAddChar(y + Y_OFFSET, x, mask);
                     }
                     else
                     {

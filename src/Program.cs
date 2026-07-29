@@ -44,7 +44,7 @@ var mainMenuWindow = new MenuWindow("==== S21 ROGUE GAME ====");
 var pauseMenuWindow = new MenuWindow();
 // //! TODO: Modify behaver
 // var gameWindow = new GameWindow();
-var gameWindow = new GameWindow3D();
+var gameWindow = new GameWindow();
 var statisticWindow = new StatisticsWindow(currentGameSession?.Stats ?? new GameStatistics(scoreboard.NextId), scoreboard);
 
 gameWindow.AddInput(InputAction.ESCAPE, () =>
@@ -70,67 +70,7 @@ mainMenuWindow.AddItem("Start New Game", () =>
         currentWindow = gameWindow;
     }
 );
-//! TODO: DELETE
-mainMenuWindow.AddItem("Test Entities and View", () =>
-{
-    var stats = new GameStatistics(scoreboard.NextId);
 
-    var player = new Player(2, 4);
-    var level = new Level(1, player);
-
-    Array.Clear(level.IsWall, 0, level.IsWall.Length);
-    for (int y = 0; y < Level.HEIGHT; y++)
-        for (int x = 0; x < Level.WIDTH; x++)
-            level.Visibility[y, x] = VisibilityState.Visible;
-
-    int roomLeft = 0;
-    int roomRight = 40;
-    int roomTop = 0;
-    int roomBottom = 25;
-
-    for (int x = roomLeft; x <= roomRight; x++)
-    {
-        level.IsWall[roomTop, x] = true;     // Top Wall
-        level.IsWall[roomBottom, x] = true;  // Bottom Wall
-    }
-    for (int y = roomTop; y <= roomBottom; y++)
-    {
-        level.IsWall[y, roomLeft] = true;    // Left Wall
-        level.IsWall[y, roomRight] = true;   // Right Wall
-    }
-
-    for (int y = 2; y <= 8; y++)
-    {
-        level.IsWall[y, 5] = true;
-    }
-
-    level.Entities.Clear();
-    player.Position = new Vector2i(2, 4);
-    level.Entities.Add(player);
-
-    level.Entities.Add(new Zombie(15, 10));      // z
-    level.Entities.Add(new Vampire(20, 10));     // v
-    level.Entities.Add(new Ghost(25, 10));       // g
-    level.Entities.Add(new Ogre(30, 10));        // O
-    level.Entities.Add(new SnakeMage(35, 10));   // s
-    level.Entities.Add(new Mimic(15, 15));       // m
-
-    level.Entities.Add(new Weapon(20, 15));      // !
-    level.Entities.Add(new Food(25, 15));        // F
-    level.Entities.Add(new Scroll(30, 15));      // I
-    level.Entities.Add(new Elixir(35, 15));      // &
-
-    var key = new Key(3, 3, Color.Cyan);
-    level.Entities.Add(key);
-    level.Entities.Add(new Door(5, 1, false, key));
-    level.Entities.Add(new Door(7, 7, true));
-
-    currentGameSession = new GameSession(stats, level);
-    gameWindow.GameSession = currentGameSession;
-    currentSaver = new GameSaver(currentGameSession, scoreboard, dataService);
-
-    currentWindow = gameWindow;
-});
 if (currentGameSession != null)
 {
     mainMenuWindow.AddItem("Continue Game", () =>
