@@ -174,8 +174,10 @@ class GameSession
         Player player = Level.Player;
 
         // Constants for smooth movement
-        const double MOVE_SPEED = 0.2;
-        const double ROT_SPEED = 0.05;
+        // const double MOVE_SPEED = 0.2;
+        // const double ROT_SPEED = 0.05;
+        const double MOVE_SPEED = 0.35;
+        const double ROT_SPEED = 0.1;
 
         double dx = 0;
         double dy = 0;

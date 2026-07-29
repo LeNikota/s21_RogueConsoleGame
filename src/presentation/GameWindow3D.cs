@@ -62,7 +62,7 @@ class GameWindow3D : Window
         GameLog.Add($"{player.PositionDouble}");
 
         Render3DWord(level, player);
-        // Render3DEnteties(level, player);
+        Render3DEnteties(level, player);
         LevelRenderer.PrintLevelAsMinimap(level);
         // RenderUI(GameSession);
 
@@ -202,5 +202,110 @@ class GameWindow3D : Window
     {
         double eps = 0.01;
         return Math.Abs(x - Math.Round(x)) < eps || Math.Abs(y - Math.Round(y)) < eps;
+    }
+
+    static private void Render3DEnteties(Level level, Player player)
+    {
+        double currentAngle = player.Angle;
+        double cosA = Math.Cos(currentAngle);
+        double sinA = Math.Sin(currentAngle);
+
+        // Half FOV for checking visibility
+        double halfFov = FOV_RADIANS / 2.0;
+        int screenWidth = NCurses.Columns;
+        int screenHeight = NCurses.Lines - LevelRenderer.Y_OFFSET;
+
+        // We collect entities to draw so we can sort them by distance (Painter's Algorithm)
+        List<(int screenX, int startY, int endY, char icon, short colorPair, double dist)> entitiesToDraw = [];
+
+        foreach (var entity in level.Entities)
+        {
+            if (entity == player) continue;
+
+            if (level.Visibility[entity.Position.Y, entity.Position.X] != VisibilityState.Visible) continue;
+
+            if (entity is Ghost ghost && ghost.IsInvisible) continue;
+
+            // 1. Transform Entity Position to Relative to Player
+            double dx = entity.Position.X - player.PositionDouble.X;
+            double dy = entity.Position.Y - player.PositionDouble.Y;
+
+            // 2. Rotate around Player (World -> Camera Space)
+            double rotX = - dx * sinA + dy * cosA; // Left/Right
+            double rotY = dx * cosA + dy * sinA; // Forward/Backward
+
+            GameLog.Add($" | {player.Angle} | {Tools.RadToDeg(player.Angle)} | {entity.Position.X} {entity.Position.Y} | {rotX}, {rotY}");
+
+            // 3. Check if entity is behind the player or too far
+            if (rotY <= 0.1) continue; // Behind camera plane or too close
+
+            // 4. Check if within Horizontal FOV
+            double entityAngle = Math.Atan2(rotX, rotY);
+
+            if (Math.Abs(entityAngle) > halfFov) continue; // Outside FOV
+
+            // 5. Project to Screen Coordinates
+            double scale = (screenWidth / 2.0) / Math.Tan(halfFov);
+
+            int screenX = (int)((rotX / rotY) * scale + screenWidth / 2.0);
+
+
+            // 6. Calculate Sprite Height based on Perspective
+            // The further away, the smaller the sprite.
+            // We use a base factor (e.g., screenHeight / 2) to determine max size at close range.
+            double dist = Math.Sqrt(dx * dx + dy * dy);
+            int spriteHeight = (int)(screenHeight / dist);
+            if (spriteHeight < 1) spriteHeight = 1;
+            // if (spriteHeight > screenHeight) spriteHeight = screenHeight;
+            if (spriteHeight > screenHeight / 2) spriteHeight = screenHeight / 2;
+
+            // Center the sprite vertically
+            int startY = (screenHeight - spriteHeight) / 2;
+            int endY = startY + spriteHeight;
+
+            // Bounds check for X
+            if (screenX < 0 || screenX >= screenWidth) continue;
+
+            // Determine Color
+            short pair = 0;
+            if (LevelRenderer.ColorPairMap.TryGetValue(entity.Color, out short p))
+                pair = p;
+
+            entitiesToDraw.Add((screenX, startY, endY, (char)entity.Icon, pair, dist));
+        }
+
+        // Sort by distance descending so closer ones draw on top
+        entitiesToDraw.Sort((a, b) => b.dist.CompareTo(a.dist));
+
+        // Draw entities
+        foreach (var e in entitiesToDraw)
+        {
+            NCurses.AttributeSet(NCurses.ColorPair(e.colorPair));
+
+            int spriteWidth = 1;
+            if (e.dist < 5.0) spriteWidth = 13;
+            else if (e.dist < 7.0) spriteWidth = 7;
+            else if (e.dist < 10.0) spriteWidth = 3;
+
+            int halfWidth = spriteWidth / 2;
+            int startX = e.screenX - halfWidth;
+            int endX = startX + spriteWidth;
+
+            for (int x = startX; x < endX; x++)
+            {
+                if (x < 0 || x >= NCurses.Columns) continue;
+
+                for (int y = e.startY; y < e.endY; y++)
+                {
+                    int screenY = y + LevelRenderer.Y_OFFSET;
+
+                    if (screenY >= 0 && screenY < NCurses.Lines)
+                    {
+                        //? May be use different chars for left/center/right to simulate texture
+                        NCurses.MoveAddChar(screenY, x, e.icon);
+                    }
+                }
+            }
+        }
     }
 }

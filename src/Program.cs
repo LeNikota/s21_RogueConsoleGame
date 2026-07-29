@@ -75,7 +75,7 @@ mainMenuWindow.AddItem("Test Entities and View", () =>
 {
     var stats = new GameStatistics(scoreboard.NextId);
 
-    var player = new Player(10, 10);
+    var player = new Player(2, 4);
     var level = new Level(1, player);
 
     Array.Clear(level.IsWall, 0, level.IsWall.Length);
@@ -99,8 +99,13 @@ mainMenuWindow.AddItem("Test Entities and View", () =>
         level.IsWall[y, roomRight] = true;   // Right Wall
     }
 
+    for (int y = 3; y <= 8; y++)
+    {
+        level.IsWall[y, 5] = true;
+    }
+
     level.Entities.Clear();
-    player.Position = new Vector2i(10, 10);
+    player.Position = new Vector2i(2, 4);
     level.Entities.Add(player);
 
     level.Entities.Add(new Zombie(15, 10));      // z
@@ -115,12 +120,12 @@ mainMenuWindow.AddItem("Test Entities and View", () =>
     level.Entities.Add(new Scroll(30, 15));      // I
     level.Entities.Add(new Elixir(35, 15));      // &
 
-    var redKey = new Key(10, 20, Color.Red);
-    level.Entities.Add(redKey);
+    var key = new Key(2, 7, Color.Cyan);
+    level.Entities.Add(key);
 
-    level.Entities.Add(new Door(15, 20, false, redKey) { Icon = '+', Color = Color.Red });
+    level.Entities.Add(new Door(4, 8, false, key) );
 
-    level.Entities.Add(new Door(35, 20, true, null) { Icon = '>', Color = Color.White });
+    level.Entities.Add(new Door(35, 20, true) );
 
     currentGameSession = new GameSession(stats, level);
     gameWindow.GameSession = currentGameSession;

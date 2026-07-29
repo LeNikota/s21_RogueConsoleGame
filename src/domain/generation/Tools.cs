@@ -74,4 +74,5 @@ static class Tools
     }
 
     public static double DegToRad(double deg) => deg * Math.PI / 180.0;
+    public static double RadToDeg(double rad) => rad * 180.0 / Math.PI;
 }
