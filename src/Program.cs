@@ -99,7 +99,7 @@ mainMenuWindow.AddItem("Test Entities and View", () =>
         level.IsWall[y, roomRight] = true;   // Right Wall
     }
 
-    for (int y = 3; y <= 8; y++)
+    for (int y = 2; y <= 8; y++)
     {
         level.IsWall[y, 5] = true;
     }
@@ -120,12 +120,10 @@ mainMenuWindow.AddItem("Test Entities and View", () =>
     level.Entities.Add(new Scroll(30, 15));      // I
     level.Entities.Add(new Elixir(35, 15));      // &
 
-    var key = new Key(2, 7, Color.Cyan);
+    var key = new Key(3, 3, Color.Cyan);
     level.Entities.Add(key);
-
-    level.Entities.Add(new Door(4, 8, false, key) );
-
-    level.Entities.Add(new Door(35, 20, true) );
+    level.Entities.Add(new Door(5, 1, false, key));
+    level.Entities.Add(new Door(7, 7, true));
 
     currentGameSession = new GameSession(stats, level);
     gameWindow.GameSession = currentGameSession;

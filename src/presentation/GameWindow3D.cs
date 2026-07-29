@@ -19,10 +19,16 @@ class GameWindow3D : Window
     // private const char WALL_VERY_FAR = '░'; // U+2591 Light Shade
     // private const char WALL_EDGE = '│';   // Vertical Line for edges
 
-    private const char WALL_NEAR = '#';   // Solid wall (closest)
-    private const char WALL_MED = '%';    // Dense texture (medium-close)
-    private const char WALL_FAR = '+';    // Medium texture (medium-far)
-    private const char WALL_VERY_FAR = '.'; // Light texture (farthest)
+    private const char WALL_NEAR = '#';   // Solid wall
+    private const char WALL_MED = '%';    // Dense texture 
+    private const char WALL_FAR = '+';    // Medium texture 
+    private const char WALL_VERY_FAR = '.'; // Light texture 
+
+    // private const char WALL_NEAR = '#';
+    // private const char WALL_MED = '+';
+    // private const char WALL_FAR = '.';
+    // private const char WALL_VERY_FAR = ' ';
+
     private const char WALL_EDGE = '|';   // Vertical line for edges
 
     // private const char WALL_NEAR = '#';
@@ -111,11 +117,11 @@ class GameWindow3D : Window
 
             // Select Texture Character based on distance
             char wallChar;
-            if (correctedDist < 3.0)
+            if (correctedDist < 6.0)
                 wallChar = WALL_NEAR;
-            else if (correctedDist < 6.0)
+            else if (correctedDist < 12.0)
                 wallChar = WALL_MED;
-            else if (correctedDist < 10.0)
+            else if (correctedDist < 15.0)
                 wallChar = WALL_FAR;
             else
                 wallChar = WALL_VERY_FAR;
@@ -231,10 +237,8 @@ class GameWindow3D : Window
             double dy = entity.Position.Y - player.PositionDouble.Y;
 
             // 2. Rotate around Player (World -> Camera Space)
-            double rotX = - dx * sinA + dy * cosA; // Left/Right
+            double rotX = -dx * sinA + dy * cosA; // Left/Right
             double rotY = dx * cosA + dy * sinA; // Forward/Backward
-
-            GameLog.Add($" | {player.Angle} | {Tools.RadToDeg(player.Angle)} | {entity.Position.X} {entity.Position.Y} | {rotX}, {rotY}");
 
             // 3. Check if entity is behind the player or too far
             if (rotY <= 0.1) continue; // Behind camera plane or too close

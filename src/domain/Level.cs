@@ -116,8 +116,19 @@ namespace domain
             {
                 if (e.Position == pos) return e;
             }
+            
             return null;
+        }
 
+        public Entity? GetEntityByPos(int x, int y)
+        {
+            // if there are several entities in one spot, will return first fount entity
+            foreach (var e in Entities)
+            {
+                if (e.Position.X == x && e.Position.Y == y) return e;
+            }
+
+            return null;
         }
 
         public Room? GetRoomByPos(Vector2i pos)

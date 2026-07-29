@@ -15,10 +15,12 @@ namespace domain
         private Vector2i _gridPosition = new(0, 0);
         private Vector2d _worldPosition = new(0, 0);
 
+        // New is used in getters to avoid mutating internal _gridPosition and _worldPosition
+
         // Grid Position (Used by Game Logic, 2D Rendering, Save/Load)
         public override Vector2i Position
         {
-            get => _gridPosition;
+            get => new(_gridPosition.X, _gridPosition.Y);
             set
             {
                 _gridPosition = value;
@@ -43,7 +45,7 @@ namespace domain
                 if (wordPositionFlooredY - gridPositionY != 0)
                     _worldPosition.Y = gridPositionY;
 
-                return _worldPosition;
+                return new(_worldPosition.X, _worldPosition.Y);
             }
             set
             {

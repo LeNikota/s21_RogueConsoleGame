@@ -93,8 +93,6 @@ class GameSession
         {
             backpack.Opened = false;
 
-            //! TODO: MODIFY
-            // Make this out of 2D part of the code
             if (Is3DMode)
                 return MovePlayer3D(action);
 
@@ -173,7 +171,8 @@ class GameSession
     {
         Player player = Level.Player;
 
-        // Constants for smooth movement
+        var previousPosition = player.Position;
+
         // const double MOVE_SPEED = 0.2;
         // const double ROT_SPEED = 0.05;
         const double MOVE_SPEED = 0.35;
@@ -212,35 +211,62 @@ class GameSession
             if (player.Angle > 2 * Math.PI) player.Angle -= 2 * Math.PI;
             if (player.Angle < 0) player.Angle += 2 * Math.PI;
 
-            //! TODO: MODIFY ENEMY'S TURN AND ITEM INTERACTIONS 
             return false;
-            return true;
         }
 
-        Vector2d currentPos = player.PositionDouble;
-        Vector2d newPos = new(currentPos.X + dx, currentPos.Y + dy);
+        Vector2d currentPosDouble = player.PositionDouble;
+        Vector2d newPosDouble = new(currentPosDouble.X + dx, currentPosDouble.Y + dy);
+        int newPosIntX = (int)Math.Floor(newPosDouble.X);
+        int newPosIntY = (int)Math.Floor(newPosDouble.Y);
 
-        // If there is no collision check here, the player can noclip
-        if (!Level.IsWallCollision(newPos.X, newPos.Y))
+        // If there is no collision check, the player can noclip
+        if (Level.IsWallCollision(newPosDouble))
+            return false;
+
+
+        // If the player moved at least one tile (horizontally or vertically), trigger code under return
+        if (previousPosition.X == newPosIntX && previousPosition.Y == newPosIntY)
         {
-            player.PositionDouble = newPos;
+            player.PositionDouble = newPosDouble;
+            return false;
         }
-        // Separate check for wall sliding
-        // if (!Level.IsWallCollision(newPos.X, currentPos.Y))
-        // {
-        //     player.PositionDouble.X = newPos.X;
-        // }
 
-        // if (!Level.IsWallCollision(currentPos.X, newPos.Y))
-        // {
-        //     player.PositionDouble.Y = newPos.Y;
-        // }
 
-        //! TODO: DELETE OR KEEP
+
+        // The below is the copy of MovePlayer
+        Entity? entity = level.GetEntityByPos(newPosIntX, newPosIntY);
+        GameLog.Add($"{entity}");
+
+        if (entity == null)
+        {
+            player.PositionDouble = newPosDouble;
+        }
+        else if (entity is Enemy enemy)
+        {
+            OnEnemyTouched(enemy);
+        }
+        else if (entity is Item item)
+        {
+            OnItemTouched(item);
+            player.PositionDouble = newPosDouble;
+        }
+        else if (entity is Door door)
+        {
+            if (door.IsExit)
+            {
+                OnLevelExited();
+                return false;
+            }
+            if (door.Open(Player, level))
+            {
+                level.Entities.Remove(door);
+            }
+        }
+
+        Stats.TilesTraversed++;
+
         level.UpdateVisibility();
 
-        //! TODO: MODIFY ENEMY'S TURN AND ITEM INTERACTIONS
-        return false;
         return true;
     }
 
