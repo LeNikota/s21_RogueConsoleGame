@@ -209,6 +209,9 @@ class GameSession
             // Normalize angle to keep it between 0 and 2*PI
             if (player.Angle > 2 * Math.PI) player.Angle -= 2 * Math.PI;
             if (player.Angle < 0) player.Angle += 2 * Math.PI;
+
+            //! TODO: MODIFY ENEMY'S TURN AND ITEM INTERACTIONS 
+            return false;
             return true;
         }
 
@@ -231,6 +234,11 @@ class GameSession
         //     player.PositionDouble.Y = newPos.Y;
         // }
 
+        //! TODO: DELETE OR KEEP
+        level.UpdateVisibility();
+
+        //! TODO: MODIFY ENEMY'S TURN AND ITEM INTERACTIONS
+        return false;
         return true;
     }
 

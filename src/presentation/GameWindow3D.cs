@@ -61,9 +61,9 @@ class GameWindow3D : Window
         GameLog.Add($"{player.Position}");
         GameLog.Add($"{player.PositionDouble}");
 
-        Render3DView(level, player);
-        LevelRenderer.PrintLevel(GameSession.Level);
-        // RenderMinimap(level, player);
+        Render3DWord(level, player);
+        // Render3DEnteties(level, player);
+        LevelRenderer.PrintLevelAsMinimap(level);
         // RenderUI(GameSession);
 
 
@@ -76,7 +76,7 @@ class GameWindow3D : Window
         NCurses.MoveAddString(0, 0, log.PadRight(Level.WIDTH));
     }
 
-    static private void Render3DView(Level level, Player player)
+    static private void Render3DWord(Level level, Player player)
     {
         //! TODO: MODIFY
         // FOR 3D

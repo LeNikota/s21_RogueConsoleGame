@@ -70,33 +70,64 @@ mainMenuWindow.AddItem("Start New Game", () =>
         currentWindow = gameWindow;
     }
 );
-// //! TODO: DELETE
-// mainMenuWindow.AddItem("Test Entities", () =>
-//     {
-//         var stats = new GameStatistics(scoreboard.NextId);
-//         var level = new Level(1, new Player());
+//! TODO: DELETE
+mainMenuWindow.AddItem("Test Entities and View", () =>
+{
+    var stats = new GameStatistics(scoreboard.NextId);
 
-//         Array.Clear(level.IsWall, 0, level.IsWall.Length);
+    var player = new Player(10, 10);
+    var level = new Level(1, player);
 
-//         level.Entities = [];
-//         level.Player = new Player(15, 15);
-//         level.Entities.Add(new Zombie(15, 0));
-//         level.Entities.Add(new Vampire(30, 15));
-//         level.Entities.Add(new Ogre(15, 30));
-//         level.Entities.Add(new Ghost(0, 15));
-//         level.Entities.Add(new SnakeMage(15, 30));
-//         level.Entities.Add(new Mimic(30, 0));
-//         level.Entities.Add(new Key(30, 30, Color.Red));
-//         level.Entities.Add(new Key(31, 30, Color.Blue));
-//         level.Entities.Add(new Key(32, 30, Color.Magenta));
+    Array.Clear(level.IsWall, 0, level.IsWall.Length);
+    for (int y = 0; y < Level.HEIGHT; y++)
+        for (int x = 0; x < Level.WIDTH; x++)
+            level.Visibility[y, x] = VisibilityState.Visible;
 
-//         currentGameSession = new(stats, level);
-//         gameWindow.GameSession = currentGameSession;
-//         currentSaver = new(currentGameSession, scoreboard, dataService);
+    int roomLeft = 0;
+    int roomRight = 40;
+    int roomTop = 0;
+    int roomBottom = 25;
 
-//         currentWindow = gameWindow;
-//     }
-// );
+    for (int x = roomLeft; x <= roomRight; x++)
+    {
+        level.IsWall[roomTop, x] = true;     // Top Wall
+        level.IsWall[roomBottom, x] = true;  // Bottom Wall
+    }
+    for (int y = roomTop; y <= roomBottom; y++)
+    {
+        level.IsWall[y, roomLeft] = true;    // Left Wall
+        level.IsWall[y, roomRight] = true;   // Right Wall
+    }
+
+    level.Entities.Clear();
+    player.Position = new Vector2i(10, 10);
+    level.Entities.Add(player);
+
+    level.Entities.Add(new Zombie(15, 10));      // z
+    level.Entities.Add(new Vampire(20, 10));     // v
+    level.Entities.Add(new Ghost(25, 10));       // g
+    level.Entities.Add(new Ogre(30, 10));        // O
+    level.Entities.Add(new SnakeMage(35, 10));   // s
+    level.Entities.Add(new Mimic(15, 15));       // m
+
+    level.Entities.Add(new Weapon(20, 15));      // !
+    level.Entities.Add(new Food(25, 15));        // F
+    level.Entities.Add(new Scroll(30, 15));      // I
+    level.Entities.Add(new Elixir(35, 15));      // &
+
+    var redKey = new Key(10, 20, Color.Red);
+    level.Entities.Add(redKey);
+
+    level.Entities.Add(new Door(15, 20, false, redKey) { Icon = '+', Color = Color.Red });
+
+    level.Entities.Add(new Door(35, 20, true, null) { Icon = '>', Color = Color.White });
+
+    currentGameSession = new GameSession(stats, level);
+    gameWindow.GameSession = currentGameSession;
+    currentSaver = new GameSaver(currentGameSession, scoreboard, dataService);
+
+    currentWindow = gameWindow;
+});
 if (currentGameSession != null)
 {
     mainMenuWindow.AddItem("Continue Game", () =>
@@ -155,9 +186,6 @@ statisticWindow.AddInput(InputAction.ESCAPE, () => currentWindow = fromPausedMen
 statisticWindow.AddInput(InputAction.ENTER, () => currentWindow = fromPausedMenu ? pauseMenuWindow : mainMenuWindow);
 
 currentWindow = mainMenuWindow;
-// //! TODO: Modify behaver
-currentWindow.Input(InputAction.ENTER);
-
 
 while (!shouldClose)
 {
@@ -284,7 +312,7 @@ static void WaitForResize(int expectedWidth = 0, int expectedHeight = 0)
     //      LEVEL SIZE CHANGE FOR BIGGER?
     // FOR 3D
     //      AUTO SCREEN UPDATE
-    
+
     if (expectedWidth == 0 || expectedHeight == 0)
     {
         expectedWidth = Level.WIDTH;
