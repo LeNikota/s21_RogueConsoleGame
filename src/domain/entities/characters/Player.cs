@@ -1,23 +1,77 @@
 // domain/entities/characters/Player.cs
+using System.Numerics;
+using System.Reflection.Metadata.Ecma335;
 using System.Text.Json.Serialization;
 namespace domain
 {
     [JsonDerivedType(typeof(Player))]
     class Player : Character
     {
+        // ---- Warning ----
+        // if _gridPosition.X or _gridPosition.Y updates
+        // it won't update _worldPosition and vice versa
+        // there needs to be a way to update both symoltanisly
+        // like make _gridPosition source of truth for _worldPosition
+        private Vector2i _gridPosition = new(0, 0);
+        private Vector2d _worldPosition = new(0, 0);
+
+        // Grid Position (Used by Game Logic, 2D Rendering, Save/Load)
+        public override Vector2i Position
+        {
+            get => _gridPosition;
+            set
+            {
+                _gridPosition = value;
+                _worldPosition.X = value.X;
+                _worldPosition.Y = value.Y;
+            }
+        }
+
+        // Smooth World Position (Used by 3D Rendering)
+        public Vector2d PositionDouble
+        {
+            get
+            {
+                int wordPositionFlooredX = (int)Math.Floor(_worldPosition.X);
+                int wordPositionFlooredY = (int)Math.Floor(_worldPosition.Y);
+                int gridPositionX = _gridPosition.X;
+                int gridPositionY = _gridPosition.Y;
+
+                if (wordPositionFlooredX - gridPositionX != 0)
+                    _worldPosition.X = gridPositionX;
+
+                if (wordPositionFlooredY - gridPositionY != 0)
+                    _worldPosition.Y = gridPositionY;
+
+                return _worldPosition;
+            }
+            set
+            {
+                _worldPosition = value;
+                _gridPosition.X = (int)Math.Floor(value.X);
+                _gridPosition.Y = (int)Math.Floor(value.Y);
+
+            }
+        }
+
+        // The direction the player is facing in 3D space
+        public double Angle { get; set; } = 0; // In radians
+
+        public bool IsAsleep { get; set; } = false;
+
         public Backpack Backpack { get; set; } = new();
         public List<Elixir> ActiveElixirs { get; set; } = [];
         public Weapon? CurrentWeapon { get; set; } = null;
 
-        public bool IsAsleep { get; set; } = false;
+        public Player() : base(0, 0, '@', 100, 5, 5)
+        { }
 
-        // For 3D rendering
-        // The direction the player is facing in 3D space
-        public double Angle { get; set; } = 0; // In radians
+        public Player(int x = 0, int y = 0, GameStatistics? stats = null) : base(x, y, '@', 100, 5, 5)
+        {
+            _gridPosition = new Vector2i(x, y);
+            _worldPosition = new Vector2d(x, y);
+        }
 
-        public Player() : base(0, 0, '@', 100, 5, 5) { }
-        public Player(int x = 0, int y = 0, GameStatistics? stats = null)
-        : base(x, y, '@', 100, 5, 5) { }
 
         public bool PickItem(Item item)
         {

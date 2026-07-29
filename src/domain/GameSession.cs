@@ -7,7 +7,7 @@ enum InputAction { NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, ENTER, BACKPACK, DROP, W
 
 class GameSession
 {
-    public enum State { MENU, PLAYING, OVER, EXITING, PAUSED, STATS };
+    public enum State { PLAYING, OVER };
     public readonly Dictionary<InputAction, Vector2i> InputDirectionMap = new()
         {
             {InputAction.UP, Vector2i.UP},
@@ -30,6 +30,8 @@ class GameSession
     public Player Player => level.Player;
     public State state = State.PLAYING;
     public GameStatistics Stats { get; private set; }
+    // Make this out of 2D part of the code
+    public bool Is3DMode = false;
 
     public event EventHandler<GameSaveEventArgs>? OnSaveRequested;
 
@@ -70,7 +72,6 @@ class GameSession
                 break;
 
             case State.OVER:
-                OnGameOverInput(action);
                 break;
         }
     }
@@ -91,6 +92,12 @@ class GameSession
         if (InputDirectionMap.TryGetValue(action, out Vector2i? dir))
         {
             backpack.Opened = false;
+
+            //! TODO: MODIFY
+            // Make this out of 2D part of the code
+            if (Is3DMode)
+                return MovePlayer3D(action);
+
             Vector2i new_pos = Player.Position + dir;
             return MovePlayer(new_pos);
         }
@@ -129,19 +136,6 @@ class GameSession
         return true;
     }
 
-    private void OnGameOverInput(InputAction action)
-    {
-        if (action == InputAction.ESCAPE)
-        {
-            state = State.EXITING;
-        }
-        else if (action == InputAction.RESTART)
-        {
-            state = State.MENU;
-            level = null;
-        }
-    }
-
     private bool MovePlayer(Vector2i new_pos)
     {
         if (!level.IsPositionValid(new_pos)) return false;
@@ -171,6 +165,71 @@ class GameSession
         }
 
         level.UpdateVisibility();
+
+        return true;
+    }
+
+    private bool MovePlayer3D(InputAction action)
+    {
+        Player player = Level.Player;
+
+        // Constants for smooth movement
+        const double MOVE_SPEED = 0.2;
+        const double ROT_SPEED = 0.05;
+
+        double dx = 0;
+        double dy = 0;
+        double dAngle = 0;
+
+        // Calculate intended change based on input
+        switch (action)
+        {
+            case InputAction.UP:
+                dx = Math.Cos(player.Angle) * MOVE_SPEED;
+                dy = Math.Sin(player.Angle) * MOVE_SPEED;
+                break;
+            case InputAction.DOWN:
+                dx = -Math.Cos(player.Angle) * MOVE_SPEED;
+                dy = -Math.Sin(player.Angle) * MOVE_SPEED;
+                break;
+            case InputAction.LEFT:
+                dAngle = -ROT_SPEED;
+                break;
+            case InputAction.RIGHT:
+                dAngle = ROT_SPEED;
+                break;
+            default:
+                return false;
+        }
+
+        // Handle Rotation
+        if (dAngle != 0)
+        {
+            player.Angle += dAngle;
+            // Normalize angle to keep it between 0 and 2*PI
+            if (player.Angle > 2 * Math.PI) player.Angle -= 2 * Math.PI;
+            if (player.Angle < 0) player.Angle += 2 * Math.PI;
+            return true;
+        }
+
+        Vector2d currentPos = player.PositionDouble;
+        Vector2d newPos = new(currentPos.X + dx, currentPos.Y + dy);
+
+        // If there is no collision check here, the player can noclip
+        if (!Level.IsWallCollision(newPos.X, newPos.Y))
+        {
+            player.PositionDouble = newPos;
+        }
+        // Separate check for wall sliding
+        // if (!Level.IsWallCollision(newPos.X, currentPos.Y))
+        // {
+        //     player.PositionDouble.X = newPos.X;
+        // }
+
+        // if (!Level.IsWallCollision(currentPos.X, newPos.Y))
+        // {
+        //     player.PositionDouble.Y = newPos.Y;
+        // }
 
         return true;
     }

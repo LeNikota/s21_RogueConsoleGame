@@ -25,7 +25,7 @@ enum Color { None, White, Red, Green, Blue, Yellow, Cyan, Magenta, Black }
 
 class Entity
 {
-    public Vector2i Position { get; set; }
+    public virtual Vector2i Position { get; set; }
     public uint Icon { get; set; }
     public Color Color { get; set; }
 

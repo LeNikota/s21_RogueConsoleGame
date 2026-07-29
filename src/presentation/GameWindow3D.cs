@@ -11,12 +11,6 @@ class GameWindow3D : Window
     // private const int FOV_DEGREES = 70;
     private const double FOV_RADIANS = FOV_DEGREES * Math.PI / 180.0;
     private const int RAY_COUNT = 128; // Resolution (lower = faster)
-    private const double MOVE_SPEED = 0.5;
-    private const double ROT_SPEED = 0.05; // Radians
-
-    private const int MINIMAP_SIZE = 15;
-    private const int MINIMAP_OFFSET_X = 2;
-    private const int MINIMAP_OFFSET_Y = 2;
 
     // Texture Characters (Unicode Block Elements)
     // private const char WALL_NEAR = '█';   // U+2588 Full Block
@@ -40,36 +34,59 @@ class GameWindow3D : Window
 
     public GameSession? GameSession { get; set; }
 
-    public GameWindow3D() : base("3D Rogue Mode")
+    public GameWindow3D() : base("3D Rogue Mode") { }
+
+    public override void Input(InputAction input)
     {
-        // AddInput(InputAction.UP, () => MovePlayer(1));
-        // AddInput(InputAction.DOWN, () => MovePlayer(-1));
-        AddInput(InputAction.LEFT, () => RotatePlayer(-1));
-        AddInput(InputAction.RIGHT, () => RotatePlayer(1));
+        if (_actions.TryGetValue(input, out Action? action))
+        {
+            action?.Invoke();
+        }
+
+        GameSession?.Input(input);
     }
 
     public override void Render()
     {
         if (GameSession == null || GameSession.Level == null) return;
+        //! TODO: MODIFY OR DELETE
+        GameSession.Is3DMode = true;
 
         NCurses.Clear();
 
         Level level = GameSession.Level;
         Player player = GameSession.Player;
 
+
+        GameLog.Add($"{player.Position}");
+        GameLog.Add($"{player.PositionDouble}");
+
         Render3DView(level, player);
-        // LevelRenderer.PrintLevel(GameSession.Level);
+        LevelRenderer.PrintLevel(GameSession.Level);
         // RenderMinimap(level, player);
         // RenderUI(GameSession);
+
+
+        // 1. Print Log Line (Top)
+        string log = GameLog.GetLog();
+        if (log.Length > Level.WIDTH)
+            log = log[..Level.WIDTH];
+
+        // Pad with spaces to clear previous longer logs
+        NCurses.MoveAddString(0, 0, log.PadRight(Level.WIDTH));
     }
 
     static private void Render3DView(Level level, Player player)
     {
-        int screenWidth = Level.WIDTH;
-        int screenHeight = Level.HEIGHT;
+        //! TODO: MODIFY
+        // FOR 3D
+        //      AUTO SCREEN UPDATE
 
-        // int screenWidth = 222;
-        // int screenHeight = 50;
+        // int screenWidth = Level.WIDTH;
+        // int screenHeight = Level.HEIGHT;
+
+        int screenWidth = 222;
+        int screenHeight = 50;
 
         double currentAngle = player.Angle;
 
@@ -79,7 +96,7 @@ class GameWindow3D : Window
         for (int i = 0; i < RAY_COUNT; i++)
         {
             // Cast Ray and get detailed info
-            (double distance, double hitX, double hitY) = CastRayDetailed(level, player.Position, rayAngle);
+            (double distance, double hitX, double hitY) = CastRayDetailed(level, player.PositionDouble, rayAngle);
 
             // Fix Fish-Eye Effect
             double correctedDist = distance * Math.Cos(rayAngle - currentAngle);
@@ -147,7 +164,7 @@ class GameWindow3D : Window
         }
     }
 
-    static private (double distance, double hitX, double hitY) CastRayDetailed(Level level, Vector2i pos, double angle)
+    static private (double distance, double hitX, double hitY) CastRayDetailed(Level level, Vector2d pos, double angle)
     {
         double sin = Math.Sin(angle);
         double cos = Math.Cos(angle);
@@ -185,16 +202,5 @@ class GameWindow3D : Window
     {
         double eps = 0.01;
         return Math.Abs(x - Math.Round(x)) < eps || Math.Abs(y - Math.Round(y)) < eps;
-    }
-
-    private void RotatePlayer(int direction)
-    {
-        if (GameSession == null) return;
-        GameSession.Level.Player.Angle += ROT_SPEED * direction;
-
-        if (GameSession.Level.Player.Angle > 2 * Math.PI)
-            GameSession.Level.Player.Angle -= 2 * Math.PI;
-        if (GameSession.Level.Player.Angle < 0)
-            GameSession.Level.Player.Angle += 2 * Math.PI;
     }
 }

@@ -78,6 +78,37 @@ namespace domain
             return true;
         }
 
+        public bool IsPositionValid(int x, int y)
+        {
+            if (x < 0 || y < 0 || x >= WIDTH || y >= HEIGHT || IsWall[y, x]) return false;
+            return true;
+        }
+
+        public bool IsWallCollision(Vector2d pos)
+        {
+            int x = (int)Math.Floor(pos.X);
+            int y = (int)Math.Floor(pos.Y);
+
+            // Out of bounds is treated as a wall
+            if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT)
+                return true;
+
+            return IsWall[y, x];
+        }
+
+        public bool IsWallCollision(double x, double y)
+        {
+            int X = (int)Math.Floor(x);
+            int Y = (int)Math.Floor(y);
+
+            // Out of bounds is treated as a wall
+            if (X < 0 || X >= WIDTH || Y < 0 || Y >= HEIGHT)
+                return true;
+
+            // First Y, then X
+            return IsWall[Y, X];
+        }
+
         public Entity? GetEntityByPos(Vector2i pos)
         {
             // if there are several entities in one spot, will return first fount entity

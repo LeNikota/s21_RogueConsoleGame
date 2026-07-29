@@ -278,14 +278,21 @@ static void ResizeTerminal(int width = 0, int height = 0)
 
 static void WaitForResize(int expectedWidth = 0, int expectedHeight = 0)
 {
+    //! TODO: MODIFY
+    // FOR 2D
+    //      MINIMAL SCREEN WARNING
+    //      LEVEL SIZE CHANGE FOR BIGGER?
+    // FOR 3D
+    //      AUTO SCREEN UPDATE
+    
     if (expectedWidth == 0 || expectedHeight == 0)
     {
         expectedWidth = Level.WIDTH;
         expectedHeight = Level.HEIGHT + 3;
     }
     // 1/4 Of my full screen 
-    // expectedWidth = 222;
-    // expectedHeight = 52;
+    expectedWidth = 222;
+    expectedHeight = 52;
 
     // // My full screen
     // expectedWidth = 506;
