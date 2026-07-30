@@ -7,7 +7,7 @@ enum InputAction { NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, ENTER, BACKPACK, DROP, W
 
 class GameSession
 {
-    public enum State { PLAYING, OVER };
+    public enum State { PLAYING, WIN, OVER };
     public readonly Dictionary<InputAction, Vector2i> InputDirectionMap = new()
         {
             {InputAction.UP, Vector2i.UP},
@@ -335,7 +335,7 @@ class GameSession
 
         if (nextLevel > 21)
         {
-            state = State.OVER;
+            state = State.WIN;
             GameLog.Add("You won. Press ESC to exit");
             return;
         }

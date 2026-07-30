@@ -59,7 +59,6 @@ class AppConfig
             _scoreboard
         );
 
-
         // Main Menu Logic
         mainMenu.AddItem("Start New Game", () => StartNewGame(gameWindow));
         if (_currentGameSession != null)
@@ -72,7 +71,6 @@ class AppConfig
         pauseMenu.AddItem("Continue", () => _windowManager.PopWindow());
         pauseMenu.AddItem("Toggle 2D/3D Mode", () =>
         {
-
             if (is3DMode)
             {
                 gameWindow.GameSession = _currentGameSession;
@@ -85,6 +83,7 @@ class AppConfig
             }
 
             is3DMode = !is3DMode;
+            _currentGameSession.Is3DMode = is3DMode;
         });
         pauseMenu.AddItem("Restart", () => StartNewGame(gameWindow));
         pauseMenu.AddItem("View Statistics", () => _windowManager.PushWindow(statsWindow));
@@ -95,11 +94,27 @@ class AppConfig
         gameWindow.AddInput(InputAction.ESCAPE, () =>
         {
             _currentGameSession?.RequestSave();
+
+            if (_currentGameSession?.state != GameSession.State.PLAYING)
+            {
+                // TODO: DELETE SAVE AFTER GAME END
+                _windowManager.SwitchTo(mainMenu);
+                return;
+            }
+
             _windowManager.PushWindow(pauseMenu);
         });
         gameWindow3D.AddInput(InputAction.ESCAPE, () =>
         {
             _currentGameSession?.RequestSave();
+
+            if (_currentGameSession?.state != GameSession.State.PLAYING)
+            {
+                // TODO: DELETE SAVE AFTER GAME END
+                _windowManager.SwitchTo(mainMenu);
+                return;
+            }
+
             _windowManager.PushWindow(pauseMenu);
         });
 

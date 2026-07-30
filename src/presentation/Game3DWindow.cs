@@ -55,31 +55,26 @@ class Game3DWindow : Window
     public override void Render()
     {
         if (GameSession == null || GameSession.Level == null) return;
-        //! TODO: MODIFY OR DELETE
-        GameSession.Is3DMode = true;
 
         NCurses.Clear();
 
         Level level = GameSession.Level;
         Player player = GameSession.Player;
 
-
-        GameLog.Add($"{player.Position}");
-        GameLog.Add($"{player.PositionDouble}");
-
         Render3DWord(level, player);
         Render3DEnteties(level, player);
         LevelRenderer.PrintLevelAsMinimap(level);
-        // RenderUI(GameSession);
+        LevelRenderer.PrintGameUI(GameSession);
 
-
-        // 1. Print Log Line (Top)
-        string log = GameLog.GetLog();
-        if (log.Length > Level.WIDTH)
-            log = log[..Level.WIDTH];
-
-        // Pad with spaces to clear previous longer logs
-        NCurses.MoveAddString(0, 0, log.PadRight(Level.WIDTH));
+        switch (GameSession.state)
+        {
+            case GameSession.State.WIN:
+                LevelRenderer.PrintGameWin();
+                break;
+            case GameSession.State.OVER:
+                LevelRenderer.PrintGameOver();
+                break;
+        }
     }
 
     static private void Render3DWord(Level level, Player player)

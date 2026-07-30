@@ -241,4 +241,80 @@ class LevelRenderer
 
         NCurses.AttributeSet(NCurses.ColorPair(0));
     }
+
+    public static void PrintBackpack(Backpack backpack)
+    {
+        int x = (int)Math.Round(Level.WIDTH * 0.6);
+        int y = 1;
+
+        if (backpack.action == Backpack.Action.WEAPON)
+            NCurses.MoveAddString(y++, x, "0) Unequip current weapon");
+
+        for (int i = 0; i < backpack.Count; i++)
+        {
+            string itemName = backpack[i].Name;
+            // Truncates if too long to prevent overflow
+            if (itemName.Length > Level.WIDTH - x - 5)
+                itemName = itemName[..(Level.WIDTH - x - 5)] + "...";
+
+            NCurses.MoveAddString(y++, x, $"{i + 1}) {itemName}");
+        }
+
+        if (backpack.Treasure > 0)
+            NCurses.MoveAddString(y, x, $"{backpack.Count + 1}) Treasure worth {backpack.Treasure}");
+    }
+
+    public static void PrintGameUI(GameSession game)
+    {
+        if (game.Level == null) return;
+
+        // 1. Print Log Line (Top)
+        string log = GameLog.GetLog();
+        if (log.Length > Level.WIDTH)
+            log = log[..Level.WIDTH];
+
+        // Pad with spaces to clear previous longer logs
+        NCurses.MoveAddString(0, 0, log.PadRight(Level.WIDTH));
+
+        // 2. Print Stats Line (Bottom or Below Log Line)
+        Player p = game.Player;
+        string weaponName = p.GetWeapon() == null ? "None" : p.GetWeapon()!.Name;
+        string stats = $"Lvl: {game.Level.Floor}, HP: {p.CurrentHealth}/{p.MaxHealth}, STR: {p.Strength}, AG: {p.Agility}, Wpn: {weaponName}";
+
+        if (stats.Length > Level.WIDTH)
+            stats = stats[..Level.WIDTH];
+
+        if (game.Is3DMode)
+            NCurses.MoveAddString(Y_OFFSET, 0, stats.PadRight(Level.WIDTH));
+        else
+            NCurses.MoveAddString(Level.HEIGHT + Y_OFFSET, 0, stats.PadRight(Level.WIDTH));
+
+        // 3. Print Backpack if Open
+        Backpack b = p.GetBackpack();
+        if (b.Opened)
+            PrintBackpack(b);
+    }
+
+    public static void PrintGameWin()
+    {
+        int centerX = Level.WIDTH / 2;
+        int centerY = Level.HEIGHT / 2;
+
+        NCurses.AttributeSet(NCurses.ColorPair(3)); // Green for Game Win
+        NCurses.MoveAddString(centerY - 2, centerX - 1, "YOU WIN");
+        NCurses.AttributeSet(NCurses.ColorPair(0));
+        NCurses.MoveAddString(centerY + 1, centerX - 7, "Press [ESC] to Exit");
+    }
+
+    public static void PrintGameOver()
+    {
+        int centerX = Level.WIDTH / 2;
+        int centerY = Level.HEIGHT / 2;
+
+        NCurses.AttributeSet(NCurses.ColorPair(2)); // Red for Game Over
+        NCurses.MoveAddString(centerY - 2, centerX - 2, "GAME OVER");
+        NCurses.AttributeSet(NCurses.ColorPair(0));
+
+       NCurses.MoveAddString(centerY + 1, centerX - 7, "Press [ESC] to Exit");
+    }
 }
