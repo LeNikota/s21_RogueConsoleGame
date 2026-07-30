@@ -5,7 +5,7 @@ using domain.generation;
 
 namespace presentation;
 
-class GameWindow3D : Window
+class Game3DWindow : Window
 {
     private const int FOV_DEGREES = 60;
     // private const int FOV_DEGREES = 70;
@@ -40,7 +40,7 @@ class GameWindow3D : Window
 
     public GameSession? GameSession { get; set; }
 
-    public GameWindow3D() : base("3D Rogue Mode") { }
+    public Game3DWindow() : base("3D Rogue Mode") { }
 
     public override void Input(InputAction input)
     {

@@ -38,6 +38,12 @@ class WindowManager
         _windowStack.Clear();
     }
 
+    public void Clear()
+    {
+        _windowStack.Clear();
+    }
+
+
     public void Render()
     {
         _currentWindow?.Render();

@@ -1,5 +1,6 @@
 using domain;
 using data;
+using System.Diagnostics;
 
 namespace presentation;
 
@@ -21,10 +22,13 @@ class AppConfig
     public AppConfig(IDataService dataService)
     {
         _dataService = dataService;
+        _windowManager.PushWindow(new Window("App has not been initialize via AppConfig.InitializeAsync()."));
     }
 
     public async Task InitializeAsync()
     {
+        _windowManager.Clear();
+
         await LoadSaveDataAsync();
         await LoadScoreboardAsync();
         SetupWindows();
@@ -49,10 +53,12 @@ class AppConfig
         var mainMenu = new MenuWindow("==== S21 ROGUE GAME ====");
         var pauseMenu = new MenuWindow("PAUSED");
         var gameWindow = new GameWindow();
+        var gameWindow3D = new Game3DWindow();
         var statsWindow = new StatisticsWindow(
             _currentGameSession?.Stats ?? new GameStatistics(_scoreboard.NextId),
             _scoreboard
         );
+
 
         // Main Menu Logic
         mainMenu.AddItem("Start New Game", () => StartNewGame(gameWindow));
@@ -62,7 +68,24 @@ class AppConfig
         mainMenu.AddItem("Exit", () => _windowManager.ShouldClose = true);
 
         // Pause Menu Logic
+        bool is3DMode = false;
         pauseMenu.AddItem("Continue", () => _windowManager.PopWindow());
+        pauseMenu.AddItem("Toggle 2D/3D Mode", () =>
+        {
+
+            if (is3DMode)
+            {
+                gameWindow.GameSession = _currentGameSession;
+                _windowManager.SwitchTo(gameWindow);
+            }
+            else
+            {
+                gameWindow3D.GameSession = _currentGameSession;
+                _windowManager.SwitchTo(gameWindow3D);
+            }
+
+            is3DMode = !is3DMode;
+        });
         pauseMenu.AddItem("Restart", () => StartNewGame(gameWindow));
         pauseMenu.AddItem("View Statistics", () => _windowManager.PushWindow(statsWindow));
         pauseMenu.AddItem("Main Menu", () => _windowManager.SwitchTo(mainMenu));
@@ -70,6 +93,11 @@ class AppConfig
 
         // Game Window Logic
         gameWindow.AddInput(InputAction.ESCAPE, () =>
+        {
+            _currentGameSession?.RequestSave();
+            _windowManager.PushWindow(pauseMenu);
+        });
+        gameWindow3D.AddInput(InputAction.ESCAPE, () =>
         {
             _currentGameSession?.RequestSave();
             _windowManager.PushWindow(pauseMenu);
@@ -104,4 +132,9 @@ class AppConfig
 
         _windowManager.SwitchTo(gameWindow);
     }
+
+    // private void Toggle2D3DMode(bool is3DMode)
+    // {
+    //     _windowManager.SwitchTo()
+    // }
 }

@@ -24,12 +24,14 @@ class Window(string title = "Window", Dictionary<InputAction, Action>? actions =
 
     public virtual void Render()
     {
+        NCurses.Clear();
+        
         int centerX = Level.WIDTH / 2;
         int centerY = Level.HEIGHT / 2;
-        string label = "Nothing to render";
-        int x = centerX - label.Length / 2;
         
-        NCurses.Clear();
+        string label = string.IsNullOrEmpty(Title) ? "Nothing to render" : Title;
+        int x = centerX - label.Length / 2;
+
         NCurses.MoveAddString(centerY, x, label);
     }
 }
