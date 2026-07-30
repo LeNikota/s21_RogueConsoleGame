@@ -73,6 +73,10 @@ class JsonDataService(string gameSaveFilePath = "game_save.json") : IDataService
             Console.WriteLine($"Error saving game: {ex.Message}");
         }
     }
+    public async Task DeleteSaveAsync()
+    {
+        File.Delete(gameSaveFilePath);
+    }
 
     public async Task<Scoreboard> LoadScoreboardAsync()
     {

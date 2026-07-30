@@ -34,6 +34,7 @@ class GameSession
     public bool Is3DMode = false;
 
     public event EventHandler<GameSaveEventArgs>? OnSaveRequested;
+    public event EventHandler? OnDeleteRequested;
 
     public GameSession(GameStatistics stats)
     {
@@ -313,6 +314,8 @@ class GameSession
             enemy.Act(Player, level, Stats);
             if (Player.IsDead())
             {
+                OnDeleteRequested?.Invoke(this, EventArgs.Empty);
+
                 state = State.OVER;
                 GameLog.Add("You die. Press ESC to exit");
                 return;
@@ -335,6 +338,8 @@ class GameSession
 
         if (nextLevel > 21)
         {
+            OnDeleteRequested?.Invoke(this, EventArgs.Empty);
+
             state = State.WIN;
             GameLog.Add("You won. Press ESC to exit");
             return;

@@ -15,6 +15,7 @@ class GameSaver : IDisposable
         _dataService = dataService;
 
         _session.OnSaveRequested += HandleSaveRequest;
+        _session.OnDeleteRequested += HandleDeleteRequest;
         // _session.OnGameEvent += HandleGameEvent;
     }
 
@@ -23,12 +24,12 @@ class GameSaver : IDisposable
     //      Tracks specific milestones.
     // }
 
-    private async void HandleSaveRequest(object? sender, GameSaveEventArgs e)
+    private async void HandleSaveRequest(object? sender, GameSaveEventArgs args)
     {
         try
         {
-            await _dataService.SaveGameAsync(e.Stats, e.Level);
-            if (_scoreboard.TryAddScore(e.Stats))
+            await _dataService.SaveGameAsync(args.Stats, args.Level);
+            if (_scoreboard.TryAddScore(args.Stats))
                 await _dataService.SaveScoreboardAsync(_scoreboard);
         }
         catch (Exception ex)
@@ -37,10 +38,23 @@ class GameSaver : IDisposable
         }
     }
 
+    private async void HandleDeleteRequest(object? sender, EventArgs args)
+    {
+        try
+        {
+            await _dataService.DeleteSaveAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to delete: {ex.Message}");
+        }
+    }
+
     public void Dispose()
     {
-        // To prevent memory leaks and multiple saves
+        // To prevent memory leaks and multiple saves deletions
         _session.OnSaveRequested -= HandleSaveRequest;
+        _session.OnDeleteRequested -= HandleDeleteRequest;
         // _session.OnGameEvent -= HandleGameEvent;
     }
 }

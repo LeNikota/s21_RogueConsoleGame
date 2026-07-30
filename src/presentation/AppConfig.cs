@@ -97,7 +97,6 @@ class AppConfig
 
             if (_currentGameSession?.state != GameSession.State.PLAYING)
             {
-                // TODO: DELETE SAVE AFTER GAME END
                 _windowManager.SwitchTo(mainMenu);
                 return;
             }
@@ -110,7 +109,6 @@ class AppConfig
 
             if (_currentGameSession?.state != GameSession.State.PLAYING)
             {
-                // TODO: DELETE SAVE AFTER GAME END
                 _windowManager.SwitchTo(mainMenu);
                 return;
             }
