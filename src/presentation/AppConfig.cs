@@ -61,8 +61,7 @@ class AppConfig
 
         // Main Menu Logic
         mainMenu.AddItem("Start New Game", () => StartNewGame(gameWindow));
-        if (_currentGameSession != null)
-            mainMenu.AddItem("Continue Game", () => ContinueGame(gameWindow));
+        mainMenu.AddItem("Continue Game", () => ContinueGame(gameWindow), () => _currentGameSession != null);
         mainMenu.AddItem("View Statistics", () => _windowManager.PushWindow(statsWindow));
         mainMenu.AddItem("Exit", () => _windowManager.ShouldClose = true);
 
@@ -97,7 +96,9 @@ class AppConfig
 
             if (_currentGameSession?.state != GameSession.State.PLAYING)
             {
+                mainMenu.Reset();
                 _windowManager.SwitchTo(mainMenu);
+                _currentGameSession = null;
                 return;
             }
 
@@ -109,7 +110,9 @@ class AppConfig
 
             if (_currentGameSession?.state != GameSession.State.PLAYING)
             {
+                mainMenu.Reset();
                 _windowManager.SwitchTo(mainMenu);
+                _currentGameSession = null;
                 return;
             }
 
