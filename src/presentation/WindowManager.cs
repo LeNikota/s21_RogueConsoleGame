@@ -54,7 +54,9 @@ class WindowManager
     {
         if (_currentWindow == null) return;
 
-        InputAction action = MapKeyToAction(key);
+        InputAction action = (key >= '0' && key <= '9') ?
+            (InputAction)((int)InputAction.ZERO + (key - '0')) :
+            MapKeyToAction(key);
 
         // Global Escape handling for popping menus
         if (action == InputAction.ESCAPE && _windowStack.Count > 0)

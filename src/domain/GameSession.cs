@@ -3,7 +3,10 @@ using domain.generation;
 
 namespace domain;
 
-enum InputAction { NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, ENTER, BACKPACK, DROP, WEAPON, FOOD, ELIXIR, SCROLL, RESTART, NEXT };
+enum InputAction { 
+    NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, ENTER, BACKPACK, DROP, WEAPON, FOOD, ELIXIR, SCROLL, RESTART, NEXT, 
+    ZERO = 100, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE
+    };
 
 class GameSession
 {
@@ -60,13 +63,13 @@ class GameSession
         RaiseSaveEvent();
     }
 
-    public void Input(InputAction action, int? backpack_id = null)
+    public void Input(InputAction action)
     {
         switch (state)
         {
             case State.PLAYING:
                 GameLog.Clear();
-                if (!OnGameRunningInput(action, backpack_id)) return;
+                if (!OnGameRunningInput(action)) return;
 
                 OnEnemyTurn();
                 Player.OnTurnEnded();
@@ -77,7 +80,7 @@ class GameSession
         }
     }
 
-    private bool OnGameRunningInput(InputAction action, int? backpack_id = null)
+    private bool OnGameRunningInput(InputAction action)
     {
         // Check if Player is Asleep
         if (Player.IsAsleep)
@@ -129,8 +132,12 @@ class GameSession
             if (backpack.Opened) GameLog.Log("Your backpack:");
             return true;
         }
-        else if (action == InputAction.NONE)
-            return backpack.OnAction(backpack_id, Player, level);
+        else if (action >= InputAction.ZERO)
+        {
+            int button_id = action - InputAction.ZERO;
+            return backpack.OnItemSelected(button_id, Player, level);
+        }
+            
 
         return true;
     }

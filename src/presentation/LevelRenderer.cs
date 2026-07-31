@@ -114,9 +114,9 @@ class LevelRenderer
                 }
 
                 // 3. Visible: Draw everything normally
-                if (vis == VisibilityState.Visible)
+                if (vis == VisibilityState.Visible) 
                 {
-                    if (is_wall[y, x])
+                    if (is_wall[y, x]) //code duplication
                     {
                         uint mask = GetWallChar(is_wall, x, y);
                         NCurses.MoveAddChar(y + Y_OFFSET, x, mask);
@@ -128,11 +128,15 @@ class LevelRenderer
                 }
             }
         }
-
+        Player? player = null;
         // Render Entities ONLY if they are in Visible tiles
         foreach (var entity in level.Entities)
         {
-            // Check if the entity's position is currently visible
+            if (entity is Player)
+            {
+                player = (Player?)entity;//player has to be drawn on top of anything
+                continue;
+            }
             if (visibility[entity.Position.Y, entity.Position.X] != VisibilityState.Visible)
                 continue;
 
@@ -147,6 +151,11 @@ class LevelRenderer
 
             NCurses.AttributeSet(NCurses.ColorPair(pair));
             NCurses.MoveAddChar(entity.Position.Y + Y_OFFSET, entity.Position.X, entity.Icon);
+        }
+        if (player != null)
+        {
+            NCurses.AttributeSet(NCurses.ColorPair(0));
+            NCurses.MoveAddChar(player.Position.Y + Y_OFFSET, player.Position.X, player.Icon);
         }
 
         NCurses.AttributeSet(NCurses.ColorPair(0));
