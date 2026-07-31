@@ -92,8 +92,6 @@ class AppConfig
         // Game Window Logic
         gameWindow.AddInput(InputAction.ESCAPE, () =>
         {
-            _currentGameSession?.RequestSave();
-
             if (_currentGameSession?.state != GameSession.State.PLAYING)
             {
                 mainMenu.Reset();
@@ -102,12 +100,11 @@ class AppConfig
                 return;
             }
 
+            _currentGameSession?.RequestSave();
             _windowManager.PushWindow(pauseMenu);
         });
         gameWindow3D.AddInput(InputAction.ESCAPE, () =>
         {
-            _currentGameSession?.RequestSave();
-
             if (_currentGameSession?.state != GameSession.State.PLAYING)
             {
                 mainMenu.Reset();
@@ -116,6 +113,7 @@ class AppConfig
                 return;
             }
 
+            _currentGameSession?.RequestSave();
             _windowManager.PushWindow(pauseMenu);
         });
 

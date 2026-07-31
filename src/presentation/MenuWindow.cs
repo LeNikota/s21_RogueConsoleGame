@@ -6,72 +6,60 @@ namespace presentation;
 class MenuWindow : Window
 {
     private readonly List<(string Label, Action Callback, Func<bool>? IsEnabled)> _items;
+    private List<(string Label, Action Callback, Func<bool>? IsEnabled)> _activeItems;
+    
     public int SelectionIndex { get; private set; } = 0;
     public int Count => _items.Count;
 
     public MenuWindow(string title = "Menu", List<(string Label, Action Callback, Func<bool>?)>? items = null) : base(title)
     {
         _items = items ?? [];
+        _activeItems = _items;
+        UpdateActiveItems();
 
         AddInput(InputAction.UP, () =>
         {
-            if (_items.Count == 0) return;
-
-            int startIndex = SelectionIndex;
-            bool isEnabled;
-            do
-            {
-                SelectionIndex = (SelectionIndex + _items.Count - 1) % _items.Count;
-                if (SelectionIndex == startIndex) break;
-
-                var item = _items[SelectionIndex];
-                isEnabled = item.IsEnabled == null || item.IsEnabled();
-            } while (!isEnabled);
+            if (_activeItems.Count == 0) return;
+            SelectionIndex = (SelectionIndex - 1 + _activeItems.Count) % _activeItems.Count;
         });
 
         AddInput(InputAction.DOWN, () =>
         {
-            if (_items.Count == 0) return;
-
-            int startIndex = SelectionIndex;
-            bool isEnabled;
-            do
-            {
-                SelectionIndex = (SelectionIndex + 1) % _items.Count;
-                if (SelectionIndex == startIndex) break;
-
-                var item = _items[SelectionIndex];
-                isEnabled = item.IsEnabled == null || item.IsEnabled();
-            } while (!isEnabled);
+            if (_activeItems.Count == 0) return;
+            SelectionIndex = (SelectionIndex + 1) % _activeItems.Count;
         });
 
         AddInput(InputAction.ENTER, () =>
         {
-            if (SelectionIndex < 0 || SelectionIndex >= _items.Count)
+            if (SelectionIndex < 0 || SelectionIndex >= _activeItems.Count)
                 return;
 
-            var item = _items[SelectionIndex];
-            bool isEnabled = item.IsEnabled == null || item.IsEnabled();
-
-            if (isEnabled)
-            {
-                item.Callback?.Invoke();
-            }
+            _activeItems[SelectionIndex].Callback?.Invoke();
         });
+    }
+
+    private void UpdateActiveItems()
+    {
+        _activeItems = _items.Where(item => item.IsEnabled == null || item.IsEnabled()).ToList();
+        
+        // Safety check: if selection is out of bounds after filtering, reset it
+        if (_activeItems.Count == 0 || SelectionIndex >= _activeItems.Count)
+        {
+            SelectionIndex = 0;
+        }
     }
 
     // Adds a menu item and its press event handler
     public void AddItem(string Label, Action Callback, Func<bool>? isEnabled = null)
     {
         _items.Add((Label, Callback, isEnabled));
+        UpdateActiveItems();
     }
-
-
-    public string GetLabel(int index) => _items[index].Label;
 
     public void Reset()
     {
         SelectionIndex = 0;
+        UpdateActiveItems();
     }
 
     public override void Render()
@@ -85,17 +73,14 @@ class MenuWindow : Window
             NCurses.MoveAddString(centerY - 4, centerX - Title.Length / 2, Title);
         }
 
-        int y = centerY;
-        for (int i = 0; i < _items.Count; i++)
-        {
-            var item = _items[i];
+        UpdateActiveItems();
 
+        int y = centerY;
+        for (int i = 0; i < _activeItems.Count; i++)
+        {
+            var item = _activeItems[i];
             string label = item.Label;
             int x = centerX - label.Length / 2;
-            bool isEnabled = item.IsEnabled == null || item.IsEnabled();
-
-            if (!isEnabled)
-                continue;
 
             if (i == SelectionIndex)
             {
@@ -108,7 +93,12 @@ class MenuWindow : Window
                 NCurses.MoveAddString(y, x, label);
             }
 
-            y+=2;
+            y += 2;
+        }
+
+        if (_activeItems.Count == 0)
+        {
+             NCurses.MoveAddString(centerY, centerX - 10, "No options available");
         }
 
         NCurses.MoveAddString(y + 2, centerX - 19, "Use UP/DOWN to select, ENTER to confirm");
