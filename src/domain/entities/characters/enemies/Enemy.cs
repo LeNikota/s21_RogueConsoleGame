@@ -14,6 +14,8 @@ class Enemy : Character
     public enum StatFactor { LOW, MEDIUM, HIGH, VERY_HIGH };
     public int Hostility { get; set; }
 
+    protected Vector2i previousDirection = Vector2i.SIMPLE_DIRECTIONS[Random.Shared.Next(Vector2i.SIMPLE_DIRECTIONS.Length)];
+
     public Enemy() : base() { }
 
     public Enemy(int x, int y, uint _icon, (int hp, int s, int a, int h) stats, Color color = Color.None)
@@ -101,7 +103,7 @@ class Enemy : Character
 
         Tools.Shuffle(directions);
 
-        foreach (var dir in directions)
+        foreach (var dir in directions.Prepend(previousDirection))
         {
             Vector2i newPos = Position + dir;
 
@@ -110,6 +112,7 @@ class Enemy : Character
                 if (level.GetEntityByPos(newPos) == null)
                 {
                     Position = newPos;
+                    previousDirection = dir;
                     return;
                 }
             }

@@ -10,10 +10,11 @@ class Ogre : Enemy
 
     public override void MovePeacefully(Level level)
     {
-        var directions = new List<Vector2i> { Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT };
+        var directions = Vector2i.SIMPLE_DIRECTIONS;
+        
         Tools.Shuffle(directions);
 
-        foreach (var dir in directions)
+        foreach (var dir in directions.Prepend(previousDirection))
         {
             Vector2i step1 = Position + dir;
             Vector2i step2 = Position + dir * 2;
@@ -22,6 +23,7 @@ class Ogre : Enemy
                 level.IsPositionValid(step2) && level.GetEntityByPos(step2) == null)
             {
                 Position = step2;
+                previousDirection = dir;
                 return;
             }
         }

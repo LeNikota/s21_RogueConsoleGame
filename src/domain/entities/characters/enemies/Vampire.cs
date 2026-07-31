@@ -45,14 +45,14 @@ class Vampire : Enemy
             GameLog.Add($"{my_name} hits {other_name}.");
         }
     }
-    
+
     public override void MovePeacefully(Level level)
     {
         var directions = Vector2i.ALL_DIRECTIONS;
-
+        
         Tools.Shuffle(directions);
-
-        foreach (var dir in directions)
+        
+        foreach (var dir in directions.Prepend(previousDirection))
         {
             Vector2i newPos = Position + dir;
 
@@ -61,10 +61,10 @@ class Vampire : Enemy
                 if (level.GetEntityByPos(newPos) == null)
                 {
                     Position = newPos;
+                    previousDirection = dir;
                     return;
                 }
             }
         }
-
     }
 }

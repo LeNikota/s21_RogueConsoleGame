@@ -12,7 +12,7 @@ class SnakeMage : Enemy
 
         Tools.Shuffle(directions);
 
-        foreach (var dir in directions)
+        foreach (var dir in directions.Prepend(previousDirection))
         {
             Vector2i newPos = Position + dir;
 
@@ -21,7 +21,7 @@ class SnakeMage : Enemy
                 if (level.GetEntityByPos(newPos) == null)
                 {
                     Position = newPos;
-                    // PreviousDirection = dir;
+                    previousDirection = dir;
                     return;
                 }
             }
