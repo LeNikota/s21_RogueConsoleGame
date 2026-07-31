@@ -53,8 +53,8 @@ class AppConfig
 
     private void SetupWindows()
     {
-        var mainMenu = new MenuWindow("==== S21 ROGUE GAME ====");
-        var pauseMenu = new MenuWindow("PAUSED");
+        var mainMenuWindow = new MenuWindow("==== S21 ROGUE GAME ====");
+        var pauseMenuWindow = new MenuWindow("PAUSED");
         var gameWindow = new GameWindow();
         var gameWindow3D = new Game3DWindow();
         var statsWindow = new StatisticsWindow(
@@ -63,15 +63,15 @@ class AppConfig
         );
 
         // Main Menu Logic
-        mainMenu.AddItem("Start New Game", () => StartNewGame(gameWindow));
-        mainMenu.AddItem("Continue Game", () => ContinueGame(gameWindow), () => _currentGameSession != null);
-        mainMenu.AddItem("View Statistics", () => _windowManager.PushWindow(statsWindow));
-        mainMenu.AddItem("Exit", () => _windowManager.ShouldClose = true);
+        mainMenuWindow.AddItem("Start New Game", () => StartNewGame(gameWindow, statsWindow));
+        mainMenuWindow.AddItem("Continue Game", () => ContinueGame(gameWindow), () => _currentGameSession != null);
+        mainMenuWindow.AddItem("View Statistics", () => _windowManager.PushWindow(statsWindow));
+        mainMenuWindow.AddItem("Exit", () => _windowManager.ShouldClose = true);
 
         // Pause Menu Logic
         bool is3DMode = false;
-        pauseMenu.AddItem("Continue", () => _windowManager.PopWindow());
-        pauseMenu.AddItem("Toggle 2D/3D Mode", () =>
+        pauseMenuWindow.AddItem("Continue", () => _windowManager.PopWindow());
+        pauseMenuWindow.AddItem("Toggle 2D/3D Mode", () =>
         {
             if (is3DMode)
             {
@@ -92,37 +92,37 @@ class AppConfig
             is3DMode = !is3DMode;
             _currentGameSession?.Is3DMode = is3DMode;
         });
-        pauseMenu.AddItem("Restart", () => StartNewGame(gameWindow));
-        pauseMenu.AddItem("View Statistics", () => _windowManager.PushWindow(statsWindow));
-        pauseMenu.AddItem("Main Menu", () => _windowManager.SwitchTo(mainMenu));
-        pauseMenu.AddItem("Exit", () => _windowManager.ShouldClose = true);
+        pauseMenuWindow.AddItem("Restart", () => StartNewGame(gameWindow, statsWindow));
+        pauseMenuWindow.AddItem("View Statistics", () => _windowManager.PushWindow(statsWindow));
+        pauseMenuWindow.AddItem("Main Menu", () => _windowManager.SwitchTo(mainMenuWindow));
+        pauseMenuWindow.AddItem("Exit", () => _windowManager.ShouldClose = true);
 
         // Game Window Logic
         gameWindow.AddInput(InputAction.ESCAPE, () =>
         {
             if (_currentGameSession?.state != GameSession.State.PLAYING)
             {
-                mainMenu.Reset();
-                _windowManager.SwitchTo(mainMenu);
+                mainMenuWindow.Reset();
+                _windowManager.SwitchTo(mainMenuWindow);
                 _currentGameSession = null;
                 return;
             }
 
             _currentGameSession?.RequestSave();
-            _windowManager.PushWindow(pauseMenu);
+            _windowManager.PushWindow(pauseMenuWindow);
         });
         gameWindow3D.AddInput(InputAction.ESCAPE, () =>
         {
             if (_currentGameSession?.state != GameSession.State.PLAYING)
             {
-                mainMenu.Reset();
-                _windowManager.SwitchTo(mainMenu);
+                mainMenuWindow.Reset();
+                _windowManager.SwitchTo(mainMenuWindow);
                 _currentGameSession = null;
                 return;
             }
 
             _currentGameSession?.RequestSave();
-            _windowManager.PushWindow(pauseMenu);
+            _windowManager.PushWindow(pauseMenuWindow);
         });
 
         // Statistics Window Logic
@@ -130,16 +130,17 @@ class AppConfig
         statsWindow.AddInput(InputAction.ENTER, () => _windowManager.PopWindow());
 
         // Set Start
-        _windowManager.SetStartWindow(mainMenu);
+        _windowManager.SetStartWindow(mainMenuWindow);
     }
 
-    private void StartNewGame(GameWindow gameWindow)
+    private void StartNewGame(GameWindow gameWindow, StatisticsWindow statsWindow)
     {
         var stats = new GameStatistics(_scoreboard.NextId);
         var level = new Level(1, new Player());
         _currentGameSession = new(stats, level);
 
         gameWindow.GameSession = _currentGameSession;
+        statsWindow.Stats = stats;
         _currentSaver = new(_currentGameSession, _scoreboard, _dataService);
 
         _windowManager.SwitchTo(gameWindow);
