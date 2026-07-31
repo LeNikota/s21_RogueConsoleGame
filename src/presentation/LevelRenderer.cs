@@ -52,6 +52,8 @@ class LevelRenderer
         NCurses.InitPair(6, CursesColor.CYAN, CursesColor.BLACK);
         NCurses.InitPair(7, CursesColor.MAGENTA, CursesColor.BLACK);
         NCurses.InitPair(8, CursesColor.BLACK, CursesColor.BLACK);
+        // For 3d mode closest wall
+        NCurses.InitPair(9, CursesColor.BLACK, CursesColor.WHITE);
     }
 
     private static uint GetWallChar(bool[,] isWall, int x, int y)

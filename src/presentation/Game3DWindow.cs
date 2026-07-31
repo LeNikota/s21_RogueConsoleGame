@@ -13,29 +13,30 @@ class Game3DWindow : Window
     private const int RAY_COUNT = 128; // Resolution (lower = faster)
 
     // Texture Characters (Unicode Block Elements)
-    // private const char WALL_NEAR = '█';   // U+2588 Full Block
-    // private const char WALL_MED = '▓';    // U+2593 Dark Shade
-    // private const char WALL_FAR = '▒';    // U+2592 Medium Shade
-    // private const char WALL_VERY_FAR = '░'; // U+2591 Light Shade
-    // private const char WALL_EDGE = '│';   // Vertical Line for edges
+    // private const uint WALL_NEAR = '█';   // U+2588 Full Block
+    // private const uint WALL_MED = '▓';    // U+2593 Dark Shade
+    // private const uint WALL_FAR = '▒';    // U+2592 Medium Shade
+    // private const uint WALL_VERY_FAR = '░'; // U+2591 Light Shade
+    // private const uint WALL_EDGE = '│';   // Vertical Line for edges
 
-    private const char WALL_NEAR = '#';   // Solid wall
-    private const char WALL_MED = '%';    // Dense texture 
-    private const char WALL_FAR = '+';    // Medium texture 
-    private const char WALL_VERY_FAR = '.'; // Light texture 
+    // private const uint WALL_NEAR = CursesLineAcs.BLOCK;   // █ Solid
+    // private const uint WALL_MED = CursesLineAcs.S9;       // ▓ Dark Shade
+    // private const uint WALL_FAR = CursesLineAcs.S7;       // ▒ Medium Shade
+    // private const uint WALL_VERY_FAR = CursesLineAcs.S3;  // ░ Light Shade
+    // private const uint WALL_EDGE = CursesLineAcs.VLINE;   // │ Vertical Line
 
-    // private const char WALL_NEAR = '#';
-    // private const char WALL_MED = '+';
-    // private const char WALL_FAR = '.';
-    // private const char WALL_VERY_FAR = ' ';
+    private const uint WALL_NEAR = CursesLineAcs.CKBOARD | CursesAttribute.STANDOUT;
+    private const uint WALL_MED = CursesLineAcs.CKBOARD;
+    private const uint WALL_FAR = CursesLineAcs.CKBOARD;
+    private const uint WALL_VERY_FAR = CursesLineAcs.DIAMOND | CursesAttribute.DIM;
+    private const uint WALL_EDGE = CursesLineAcs.CKBOARD | CursesAttribute.DIM;
 
-    private const char WALL_EDGE = '|';   // Vertical line for edges
+    // private const uint WALL_NEAR = '#';   // Solid wall
+    // private const uint WALL_MED = '%';    // Dense texture 
+    // private const uint WALL_FAR = '+';    // Medium texture 
+    // private const uint WALL_VERY_FAR = '.'; // Light texture 
+    // private const uint WALL_EDGE = '|';   // Vertical line for edges
 
-    // private const char WALL_NEAR = '#';
-    // private const char WALL_MED = 'X';
-    // private const char WALL_FAR = 'x';
-    // private const char WALL_VERY_FAR = ':';
-    // private const char WALL_EDGE = '|';
 
 
     public GameSession? GameSession { get; set; }
@@ -111,7 +112,7 @@ class Game3DWindow : Window
             int endY = startY + wallHeight;
 
             // Select Texture Character based on distance
-            char wallChar;
+            uint wallChar;
             if (correctedDist < 6.0)
                 wallChar = WALL_NEAR;
             else if (correctedDist < 12.0)
@@ -151,7 +152,17 @@ class Game3DWindow : Window
                     if (y >= startY && y < endY)
                     {
                         // Draw Wall
-                        NCurses.MoveAddChar(screenY, drawX, wallChar);
+
+                        if (wallChar == WALL_NEAR)
+                        {
+                            NCurses.AttributeSet(NCurses.ColorPair(9));
+                            NCurses.MoveAddChar(screenY, drawX, ' ');
+                            NCurses.AttributeOff(NCurses.ColorPair(9));
+
+                            continue;
+                        }
+                        
+                            NCurses.MoveAddChar(screenY, drawX, wallChar);
                     }
                     else
                     {
