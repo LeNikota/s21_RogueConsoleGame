@@ -1,7 +1,5 @@
 namespace domain;
 
-using domain.generation;
-
 class Ogre : Enemy
 {
     public bool IsResting { get; set; } = false;

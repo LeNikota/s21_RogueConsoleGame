@@ -1,12 +1,10 @@
-using data;
-using domain.generation;
-
 namespace domain;
 
-enum InputAction { 
-    NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, ENTER, BACKPACK, DROP, WEAPON, FOOD, ELIXIR, SCROLL, RESTART, NEXT, 
+enum InputAction
+{
+    NONE, UP, DOWN, LEFT, RIGHT, ESCAPE, ENTER, BACKPACK, DROP, WEAPON, FOOD, ELIXIR, SCROLL, RESTART, NEXT,
     ZERO = 100, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE
-    };
+};
 
 class GameSession
 {
@@ -134,7 +132,7 @@ class GameSession
             int button_id = action - InputAction.ZERO;
             return backpack.OnItemSelected(button_id, Player, level);
         }
-            
+
 
         return true;
     }

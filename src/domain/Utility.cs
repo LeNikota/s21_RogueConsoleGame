@@ -1,4 +1,4 @@
-namespace domain.generation;
+namespace domain;
 
 class UnionFind
 {
@@ -44,7 +44,6 @@ class UnionFind
         }
     }
 }
-
 
 static class Tools
 {

@@ -1,6 +1,5 @@
-using System.ComponentModel.DataAnnotations;
-using System.Numerics;
 using domain.generation;
+
 namespace domain
 {
     public enum VisibilityState
