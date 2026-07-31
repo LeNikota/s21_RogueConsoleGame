@@ -60,7 +60,7 @@ class Backpack
         }
     }
 
-    public bool OnItemSelected(int? button_id, Player Player, Level level)
+    public bool OnItemSelected(int? button_id, Player Player, Level level, GameStatistics stats)
     {
         if (button_id == null || !Opened) return false;
 
@@ -91,14 +91,17 @@ class Backpack
                     GameLog.Add($"{w.Name} is equipped.");
                     break;
                 case Food f:
+                    stats.FoodEaten++;
                     Player.Eat(id);
                     GameLog.Add($"You eat the {f.Name}.");
                     break;
                 case Elixir e:
+                    stats.ElixirsDrunk++;
                     Player.Drink(id);
                     GameLog.Add($"You drink the {e.Name}.");
                     break;
                 case Scroll s:
+                    stats.ScrollsRead++;
                     Player.Read(id);
                     GameLog.Add($"You read the {s.Name}.");
                     break;

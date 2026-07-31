@@ -130,7 +130,7 @@ class GameSession
         else if (action >= InputAction.ZERO)
         {
             int button_id = action - InputAction.ZERO;
-            return backpack.OnItemSelected(button_id, Player, level);
+            return backpack.OnItemSelected(button_id, Player, level, Stats);
         }
 
 
@@ -334,7 +334,7 @@ class GameSession
         int nextLevel = level.Floor + 1;
 
         if (nextLevel > Stats.HighestLevelReached)
-            Stats.HighestLevelReached = level.Floor;
+            Stats.HighestLevelReached = nextLevel;
 
         if (nextLevel > 21)
         {
