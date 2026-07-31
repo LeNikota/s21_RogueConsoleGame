@@ -33,7 +33,6 @@ class GameSession
     public Player Player => level.Player;
     public State state = State.PLAYING;
     public GameStatistics Stats { get; private set; }
-    // Make this out of 2D part of the code
     public bool Is3DMode = false;
 
     public event EventHandler<GameSaveEventArgs>? OnSaveRequested;
@@ -82,11 +81,9 @@ class GameSession
 
     private bool OnGameRunningInput(InputAction action)
     {
-        // Check if Player is Asleep
         if (Player.IsAsleep)
         {
             GameLog.Log("You are asleep and cannot move!");
-            // Still process enemy turns
             OnEnemyTurn();
             Player.OnTurnEnded();
             return false;
@@ -227,7 +224,7 @@ class GameSession
         int newPosIntX = (int)Math.Floor(newPosDouble.X);
         int newPosIntY = (int)Math.Floor(newPosDouble.Y);
 
-        // If there is no collision check, the player can noclip
+        // The player can noclip, if this check is to be removed
         if (Level.IsWallCollision(newPosDouble))
             return false;
 
@@ -238,8 +235,6 @@ class GameSession
             player.PositionDouble = newPosDouble;
             return false;
         }
-
-
 
         // The below is the copy of MovePlayer
         Entity? entity = level.GetEntityByPos(newPosIntX, newPosIntY);

@@ -1,4 +1,3 @@
-// presentation/WindowManager.cs
 using Mindmagma.Curses;
 using domain;
 

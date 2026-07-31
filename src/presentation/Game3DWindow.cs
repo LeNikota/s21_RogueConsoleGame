@@ -37,8 +37,6 @@ class Game3DWindow : Window
     // private const uint WALL_VERY_FAR = '.'; // Light texture 
     // private const uint WALL_EDGE = '|';   // Vertical line for edges
 
-
-
     public GameSession? GameSession { get; set; }
 
     public Game3DWindow() : base("3D Rogue Mode") { }
@@ -304,7 +302,6 @@ class Game3DWindow : Window
 
                     if (screenY >= 0 && screenY < NCurses.Lines)
                     {
-                        //? May be use different chars for left/center/right to simulate texture
                         NCurses.MoveAddChar(screenY, x, e.icon);
                     }
                 }

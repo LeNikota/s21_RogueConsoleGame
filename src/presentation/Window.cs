@@ -19,7 +19,7 @@ class Window(string title = "Window", Dictionary<InputAction, Action>? actions =
     // Adds a key press handler
     public void AddInput(InputAction input, Action action)
     {
-        _actions[input] = action; // Use indexer to allow overwriting
+        _actions[input] = action;
     }
 
     public virtual void Render()

@@ -16,11 +16,9 @@ class StatisticsWindow(GameStatistics stats, Scoreboard scoreboard) : Window("St
         int y = 2;
         int x = 5;
 
-        // --- Current Run Statistics ---
-        NCurses.AttributeSet(NCurses.ColorPair(1)); // White
+        // Current Run Statistics
         NCurses.MoveAddString(y++, x, "=== CURRENT RUN STATISTICS ===");
         y++;
-        NCurses.AttributeSet(NCurses.ColorPair(0)); // Reset
 
 
         NCurses.MoveAddString(y++, x, $"Id: {Stats.Id}");
@@ -37,10 +35,8 @@ class StatisticsWindow(GameStatistics stats, Scoreboard scoreboard) : Window("St
 
         y += 2;
 
-        // --- High Scores / Scoreboard ---
-        NCurses.AttributeSet(NCurses.ColorPair(1));
+        // High Scores / Scoreboard
         NCurses.MoveAddString(y++, x, "=== HIGH SCORES (Top Treasures) ===");
-        NCurses.AttributeSet(NCurses.ColorPair(0));
 
         if (Scoreboard.Count > 0)
         {

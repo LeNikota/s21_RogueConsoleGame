@@ -28,7 +28,6 @@ class LevelRenderer
 
     enum WallDir { North = 1, South = 2, West = 4, East = 8 }
 
-    // private static readonly Dictionary<Color, short> ColorPairMap = new()
     public static readonly Dictionary<Color, short> ColorPairMap = new()
     {
         { Color.None, 0 },
@@ -76,7 +75,7 @@ class LevelRenderer
     public static void PrintLevel(Level level)
     {
         bool[,] is_wall = level.IsWall;
-        VisibilityState[,] visibility = level.Visibility; // NEW
+        VisibilityState[,] visibility = level.Visibility;
         int width = Level.WIDTH;
         int height = Level.HEIGHT;
 
@@ -131,12 +130,14 @@ class LevelRenderer
             }
         }
         Player? player = null;
+
         // Render Entities ONLY if they are in Visible tiles
         foreach (var entity in level.Entities)
         {
             if (entity is Player)
             {
-                player = (Player?)entity;//player has to be drawn on top of anything
+                // player has to be drawn on top of anything
+                player = (Player?)entity;
                 continue;
             }
             if (visibility[entity.Position.Y, entity.Position.X] != VisibilityState.Visible)

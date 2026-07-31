@@ -8,9 +8,6 @@ class Backpack
     public Action action = Action.NONE;
     public bool Opened = false;
 
-    // Changed from private readonly field to public property for serialization
-    // We use a private setter to maintain control via Add/Remove methods if needed, 
-    // but allow the serializer to set it during deserialization.
     public List<Item> Items { get; set; } = [];
 
     public int Treasure { get; set; } = 0;

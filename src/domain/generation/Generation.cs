@@ -1,12 +1,6 @@
 namespace domain.generation
 {
-    // enum Placement { Left, Up, Right, Down}
-    // enum Orientation { Horizontal, Vertical}
-
-    // public readonly record struct Object /*Entity*/(Vector2i Position, Vector2i Size);
-    // public readonly record struct Rectangle(Vector2i Position, Vector2i Size); // As one struct replacing Object, Room and Passage
-
-    class Object /*Entity*/(Vector2i position, Vector2i size)
+    class Object(Vector2i position, Vector2i size)
     {
         // Upper left position point of an object
         public Vector2i Position = position;

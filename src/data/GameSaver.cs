@@ -21,7 +21,9 @@ class GameSaver : IDisposable
 
     // private void HandleGameEvent(object? sender, GameEventArgs e)
     // {
-    //      Tracks specific milestones.
+    //      Can be used to
+    //          Tracks specific milestones.
+    //          Give achievements.
     // }
 
     private async void HandleSaveRequest(object? sender, GameSaveEventArgs args)
@@ -50,9 +52,9 @@ class GameSaver : IDisposable
         }
     }
 
+    // To prevent memory leaks and multiple saves deletions
     public void Dispose()
     {
-        // To prevent memory leaks and multiple saves deletions
         _session.OnSaveRequested -= HandleSaveRequest;
         _session.OnDeleteRequested -= HandleDeleteRequest;
         // _session.OnGameEvent -= HandleGameEvent;

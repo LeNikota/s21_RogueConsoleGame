@@ -146,9 +146,4 @@ class AppConfig
 
         _windowManager.SwitchTo(gameWindow);
     }
-
-    // private void Toggle2D3DMode(bool is3DMode)
-    // {
-    //     _windowManager.SwitchTo()
-    // }
 }

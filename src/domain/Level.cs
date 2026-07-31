@@ -12,8 +12,10 @@ namespace domain
 
     class Level
     {
-        public const int WIDTH = 128; // used to resize the terminal
-        public const int HEIGHT = 32; // used to resize the terminal
+        // Tells to the app the minimal required terminal dimensions to render the 2D level
+        public const int WIDTH = 128;
+        public const int HEIGHT = 32;
+        // First Y, then X
         public bool[,] IsWall { get; set; }
         public VisibilityState[,] Visibility { get; set; }
 
@@ -98,7 +100,6 @@ namespace domain
             int x = (int)Math.Floor(pos.X);
             int y = (int)Math.Floor(pos.Y);
 
-            // Out of bounds is treated as a wall
             if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT)
                 return true;
 
@@ -110,11 +111,9 @@ namespace domain
             int X = (int)Math.Floor(x);
             int Y = (int)Math.Floor(y);
 
-            // Out of bounds is treated as a wall
             if (X < 0 || X >= WIDTH || Y < 0 || Y >= HEIGHT)
                 return true;
 
-            // First Y, then X
             return IsWall[Y, X];
         }
 
