@@ -82,7 +82,7 @@ class AppConfig
             }
 
             is3DMode = !is3DMode;
-            _currentGameSession.Is3DMode = is3DMode;
+            _currentGameSession?.Is3DMode = is3DMode;
         });
         pauseMenu.AddItem("Restart", () => StartNewGame(gameWindow));
         pauseMenu.AddItem("View Statistics", () => _windowManager.PushWindow(statsWindow));

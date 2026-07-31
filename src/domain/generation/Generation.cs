@@ -61,9 +61,9 @@ namespace domain.generation
         const int REGION_HEIGHT = 10;
 
         // Global variables for functions
-        static Room[]? rooms;
-        static List<List<Passage>>? passages;
-        static List<Entity>? entities;
+        static Room[] rooms = [];
+        static List<List<Passage>> passages = [];
+        static List<Entity> entities = [];
 
         // Parameters for balance
         private const int BASE_ENEMY_COUNT = 1;

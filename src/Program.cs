@@ -37,16 +37,8 @@ while (!app.ShouldClose)
 
 NCurses.EndWin();
 
-static void ResizeTerminal(int width = 0, int height = 0)
+static void ResizeTerminal(int width = Level.WIDTH, int height = Level.HEIGHT + 3)
 {
-    if (width == 0 || height == 0)
-    {
-        width = Level.WIDTH;
-        height = Level.HEIGHT + 3;
-    }
-    width = 222;
-    height = 52;
-
     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
     {
         Console.BufferWidth = width;
@@ -62,20 +54,13 @@ static void ResizeTerminal(int width = 0, int height = 0)
     }
 }
 
-static void WaitForResize(int expectedWidth = 0, int expectedHeight = 0)
+static void WaitForResize(int expectedWidth = Level.WIDTH, int expectedHeight = Level.HEIGHT + 3)
 {
-    if (expectedWidth == 0 || expectedHeight == 0)
-    {
-        expectedWidth = Level.WIDTH;
-        expectedHeight = Level.HEIGHT + 3;
-    }
-    expectedWidth = 222;
-    expectedHeight = 52;
-
+    Console.Clear();
     while (Console.WindowWidth < expectedWidth || Console.WindowHeight < expectedHeight)
     {
         Console.SetCursorPosition(0, 0);
-        Console.WriteLine($"Please resize terminal to {expectedWidth}x{expectedHeight} (currently {Console.WindowWidth}x{Console.WindowHeight})");
+        Console.WriteLine($"Please resize terminal to {expectedWidth}x{expectedHeight} (currently {Console.WindowWidth}x{Console.WindowHeight})\n");
         Console.WriteLine("Press any key when done...");
         Console.ReadKey(true);
     }

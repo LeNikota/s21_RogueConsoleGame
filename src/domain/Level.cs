@@ -18,8 +18,8 @@ namespace domain
         public VisibilityState[,] Visibility { get; set; }
 
         public List<Entity> Entities { get; set; } = [];
-        private Player? player;
-        public Player? Player
+        private Player player;
+        public Player Player
         {
             get => player;
             set
@@ -42,7 +42,7 @@ namespace domain
         public Level(int floor, Player player, GameStatistics? stats = null)
         {
             Floor = floor;
-            Player = player;
+            this.player = player;
 
             (Rooms, Passages, Entities, IsWall) = LevelGenerator.Generate(WIDTH, HEIGHT, floor, player, stats);
 
@@ -65,8 +65,17 @@ namespace domain
             Visibility = visibility;
 
             Entities = entities ?? [];
-            if (!Entities.Contains(player))
-                Player = player;
+            var foundPlayer = Entities.Find(e => e is Player);
+            if (foundPlayer is Player existingPlayer)
+            {
+                this.player = existingPlayer;
+            }
+            else
+            {
+                this.player = player;
+                Entities.Add(player);
+            }
+
 
             Rooms = new Room[9];
             Passages = [];
@@ -116,7 +125,7 @@ namespace domain
             {
                 if (e.Position == pos) return e;
             }
-            
+
             return null;
         }
 

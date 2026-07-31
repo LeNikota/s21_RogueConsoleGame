@@ -80,16 +80,9 @@ class Game3DWindow : Window
 
     static private void Render3DWord(Level level, Player player)
     {
-        //! TODO: MODIFY
-        // FOR 3D
-        //      AUTO SCREEN UPDATE
-
-        // int screenWidth = Level.WIDTH;
-        // int screenHeight = Level.HEIGHT;
-
-        int screenWidth = 222;
-        int screenHeight = 50;
-
+        int screenWidth = Level.WIDTH;
+        int screenHeight = Level.HEIGHT;
+        
         double currentAngle = player.Angle;
 
         double deltaAngle = FOV_RADIANS / RAY_COUNT;
