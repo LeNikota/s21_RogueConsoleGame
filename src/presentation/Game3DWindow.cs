@@ -1,7 +1,5 @@
 using Mindmagma.Curses;
 using domain;
-using System;
-using domain.generation;
 
 namespace presentation;
 
@@ -54,14 +52,16 @@ class Game3DWindow : Window
     public override void Render()
     {
         if (GameSession == null || GameSession.Level == null) return;
-
         NCurses.Clear();
 
         Level level = GameSession.Level;
         Player player = GameSession.Player;
 
-        Render3DWord(level, player);
-        Render3DEnteties(level, player);
+        int screenWidth = NCurses.Columns;
+        int screenHeight = NCurses.Lines - LevelRenderer.Y_OFFSET;
+
+        Render3DWord(level, player, screenWidth, screenHeight);
+        Render3DEnteties(level, player, screenWidth, screenHeight);
         LevelRenderer.PrintLevelAsMinimap(level);
         LevelRenderer.PrintGameUI(GameSession);
 
@@ -76,11 +76,8 @@ class Game3DWindow : Window
         }
     }
 
-    static private void Render3DWord(Level level, Player player)
+    static private void Render3DWord(Level level, Player player, int screenWidth, int screenHeight)
     {
-        int screenWidth = Level.WIDTH;
-        int screenHeight = Level.HEIGHT;
-        
         double currentAngle = player.Angle;
 
         double deltaAngle = FOV_RADIANS / RAY_COUNT;
@@ -143,7 +140,6 @@ class Game3DWindow : Window
                     if (y >= startY && y < endY)
                     {
                         // Draw Wall
-
                         if (wallChar == WALL_NEAR)
                         {
                             NCurses.AttributeSet(NCurses.ColorPair(9));
@@ -152,8 +148,8 @@ class Game3DWindow : Window
 
                             continue;
                         }
-                        
-                            NCurses.MoveAddChar(screenY, drawX, wallChar);
+
+                        NCurses.MoveAddChar(screenY, drawX, wallChar);
                     }
                     else
                     {
@@ -207,7 +203,7 @@ class Game3DWindow : Window
         return Math.Abs(x - Math.Round(x)) < eps || Math.Abs(y - Math.Round(y)) < eps;
     }
 
-    static private void Render3DEnteties(Level level, Player player)
+    static private void Render3DEnteties(Level level, Player player, int screenWidth, int screenHeight)
     {
         double currentAngle = player.Angle;
         double cosA = Math.Cos(currentAngle);
@@ -215,8 +211,6 @@ class Game3DWindow : Window
 
         // Half FOV for checking visibility
         double halfFov = FOV_RADIANS / 2.0;
-        int screenWidth = NCurses.Columns;
-        int screenHeight = NCurses.Lines - LevelRenderer.Y_OFFSET;
 
         // We collect entities to draw so we can sort them by distance (Painter's Algorithm)
         List<(int screenX, int startY, int endY, char icon, short colorPair, double dist)> entitiesToDraw = [];

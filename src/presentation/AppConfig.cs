@@ -1,6 +1,7 @@
 using domain;
 using data;
-using System.Diagnostics;
+using System.Runtime.InteropServices;
+using Mindmagma.Curses;
 
 namespace presentation;
 
@@ -29,6 +30,8 @@ class AppConfig
     {
         _windowManager.Clear();
 
+        AskForResize();
+        ResizeTerminal();
         await LoadSaveDataAsync();
         await LoadScoreboardAsync();
         SetupWindows();
@@ -72,11 +75,16 @@ class AppConfig
         {
             if (is3DMode)
             {
+                ResizeTerminal();
                 gameWindow.GameSession = _currentGameSession;
                 _windowManager.SwitchTo(gameWindow);
             }
             else
             {
+                int width = Math.Max(Console.WindowWidth, Level.WIDTH + 4);
+                int height = Math.Max(Console.WindowHeight, Level.HEIGHT + 4);
+
+                ResizeTerminal(width, height);
                 gameWindow3D.GameSession = _currentGameSession;
                 _windowManager.SwitchTo(gameWindow3D);
             }
@@ -145,5 +153,78 @@ class AppConfig
         _currentSaver = new(_currentGameSession, _scoreboard, _dataService);
 
         _windowManager.SwitchTo(gameWindow);
+    }
+
+    static private void ResizeTerminal(int width = Level.WIDTH + 4, int height = Level.HEIGHT + 4)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            try
+            {
+                // 1. If we are shrinking, we must shrink the WINDOW first, then the BUFFER.
+                // 2. If we are expanding, we must expand the BUFFER first, then the WINDOW.
+                bool isShrinking = width < Console.BufferWidth || height < Console.BufferHeight;
+
+                if (isShrinking)
+                {
+                    Console.SetWindowSize(width, height);
+                    Console.BufferWidth = width;
+                    Console.BufferHeight = height;
+                }
+                else
+                {
+                    Console.BufferWidth = width;
+                    Console.BufferHeight = height;
+                    Console.SetWindowSize(width, height);
+                }
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                // Fallback: If resizing fails (e.g., font size issues), just try to match buffer to window
+                Console.BufferWidth = Math.Max(Console.WindowWidth, width);
+                Console.BufferHeight = Math.Max(Console.WindowHeight, height);
+            }
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
+                 RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            // On Linux/Mac, this escape sequence asks the terminal emulator to resize
+            Console.Write($"\x1b[8;{height};{width}t");
+            Console.Out.Flush();
+            // Gives terminal time to react
+            Thread.Sleep(100);
+        }
+
+        // Tells NCurses to re-read terminal size
+        NCurses.Refresh();
+        NCurses.Clear();
+    }
+
+    static private void AskForResize(int expectedWidth = Level.WIDTH + 4, int expectedHeight = Level.HEIGHT + 4)
+    {
+        while (Console.WindowWidth < expectedWidth || Console.WindowHeight < expectedHeight)
+        {
+            Console.Clear();
+            Console.SetCursorPosition(0, 0);
+            Console.CursorTop = Console.WindowHeight / 2 - 1;
+
+            string message = $"Please resize terminal to {expectedWidth}x{expectedHeight} (currently {Console.WindowWidth}x{Console.WindowHeight})";
+            int centeredMessageX = Console.WindowWidth / 2 - message.Length / 2;
+            if (centeredMessageX < 0)
+                centeredMessageX = 0;
+
+            Console.CursorLeft = centeredMessageX;
+            Console.WriteLine(message);
+
+            message = "Resize and press any key.";
+            centeredMessageX = Console.WindowWidth / 2 - message.Length / 2;
+            if (centeredMessageX < 0)
+                centeredMessageX = 0;
+
+            Console.CursorLeft = centeredMessageX;
+            Console.CursorTop++;
+            Console.WriteLine(message);
+            Console.ReadKey(true);
+        }
     }
 }
